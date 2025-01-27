@@ -52,6 +52,15 @@ const CMO_PROFILE_TEMPLATE = {
     best_fit: "",
     alignment_reasons: [],
   },
+  evidence: {
+    strengths: {},
+    development_areas: {},
+  },
+  assessment_notes: {
+    red_flags: [],
+    follow_up: [],
+    leadership_style: "",
+  },
 };
 
 module.exports = { CMO_PROFILE_TEMPLATE };
