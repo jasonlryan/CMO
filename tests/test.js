@@ -23,7 +23,15 @@ async function test() {
 
     // Create test data
     const testData = {
-      timestamp: new Date().toISOString(),
+      timestamp: new Date()
+        .toLocaleString("en-GB", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+        .replace(/[/:]/g, "-"),
       transcript_length: transcript.length,
       test: "successful",
     };
@@ -34,6 +42,34 @@ async function test() {
     // Save file
     fs.writeFileSync(outputPath, JSON.stringify(testData, null, 2));
     console.log("\nTest data saved to:", outputPath);
+
+    // Save profile
+    function formatDate(date) {
+      return date
+        .toLocaleString("en-GB", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+        .replace(/[/:]/g, "-");
+    }
+
+    const timestamp = formatDate(new Date());
+
+    const profilesDir = path.join(__dirname, "../data/profiles");
+    const reportsDir = path.join(__dirname, "../data/reports");
+    fs.mkdirSync(profilesDir, { recursive: true });
+    fs.mkdirSync(reportsDir, { recursive: true });
+
+    // This will now create files like:
+    // profiles/27-01-2024-17-59_cmo_profile.json
+    const profilePath = path.join(profilesDir, `${timestamp}_cmo_profile.json`);
+
+    // And reports like:
+    // reports/27-01-2024-17-59_candidate_report.json
+    // reports/27-01-2024-17-59_client_report.json
   } catch (error) {
     console.error("Error:", error);
   }

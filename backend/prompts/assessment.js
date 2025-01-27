@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-// ONLY load and export the prompt
+// Load the master prompt
 const promptPath = path.join(__dirname, "transcriptAnalysis.md");
 const ANALYSIS_PROMPT = fs.readFileSync(promptPath, "utf8");
 

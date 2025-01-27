@@ -43,6 +43,8 @@ create table if not exists assessment_results (
         "conversational_proficiency": 0,
         "executional_expertise": 0
     }',
+    evidence jsonb,
+    assessment_notes jsonb,
     created_at timestamp with time zone default timezone('utc'::text, now())
 );
 

@@ -1,6 +1,22 @@
 # Cursor Rules for CMO Assessment Tool
 
-## 1. Prompt Management
+## 1. Model Selection
+
+✅ MODELS MUST:
+
+- Use gpt-4o-mini by default
+- Never change without explicit permission
+- Consider cost implications
+- Respect token limits
+
+❌ NEVER:
+
+- Auto-upgrade to GPT-4
+- Change models without discussion
+- Ignore cost considerations
+- Exceed token budgets
+
+## 2. Prompt Management
 
 ✅ PROMPTS MUST:
 
@@ -15,7 +31,7 @@
 - Define prompts in test files
 - Duplicate prompts across files
 
-## 2. Template Management
+## 3. Template Management
 
 ✅ TEMPLATES MUST:
 
@@ -30,18 +46,36 @@
 - Define templates in test files
 - Duplicate template logic
 
-## 3. Test Files
+## 4. Test Files
 
 ✅ TESTS MUST:
 
 - Import prompts from assessment.js
 - Import templates from templates/
 - Test functionality only
+- Use specified model only
 
 ❌ NEVER:
 
 - Contain prompt content
 - Define templates
 - Mix concerns
+- Change model selection
 
-## 4. Directory Structure
+## 5. Cost Management
+
+✅ ALWAYS:
+
+- Use cost-effective models
+- Monitor token usage
+- Optimize prompts for efficiency
+- Document model choices
+
+❌ NEVER:
+
+- Use expensive models without approval
+- Ignore token limits
+- Make unauthorized model changes
+- Hide model selection changes
+
+## 6. Directory Structure
