@@ -9,17 +9,18 @@ export interface CMOProfile {
     hardSkills: Record<string, number>;
     softSkills: Record<string, number>;
   };
-  created_at?: string;
-  updated_at?: string;
-  target_maturity_stage?: string;
   skill_depth_levels: {
     strategic_understanding: Record<string, number>;
     managerial_oversight: Record<string, number>;
     conversational_proficiency: Record<string, number>;
     executional_expertise: Record<string, number>;
   };
-  maturity_stage_id?: string;
-  maturity_stage?: MaturityStage;
+  key_strengths: string[];
+  growth_areas: string[];
+  maturity_stage: {
+    best_fit: string;
+    alignment_reasons: string[];
+  };
 }
 
 export interface AssessmentResult {
@@ -31,7 +32,6 @@ export interface AssessmentResult {
     softSkills: number;
   };
   recommendations: string[];
-  created_at?: string;
 }
 
 export type MaturityStage = {
@@ -44,4 +44,29 @@ export type MaturityStage = {
     leadershipSkills: number;
     commercialAcumen: number;
   };
-}; 
+};
+
+export interface ProcessedTranscript {
+  keyPoints: string[];
+  experience: {
+    years: number;
+    roles: string[];
+  };
+  skills: {
+    hardSkills: Record<string, number>;
+    softSkills: Record<string, number>;
+  };
+  skill_depth_levels: {
+    strategic_understanding: Record<string, number>;
+    managerial_oversight: Record<string, number>;
+    conversational_proficiency: Record<string, number>;
+    executional_expertise: Record<string, number>;
+  };
+  industry?: string;
+  organization_type?: 'B2B' | 'B2C' | 'Hybrid';
+  key_strengths?: string[];
+  maturity_stage?: {
+    best_fit: string;
+    alignment_reasons: string[];
+  };
+} 
