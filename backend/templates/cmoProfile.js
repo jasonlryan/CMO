@@ -1,3 +1,5 @@
+// This should ONLY have the template structure, no prompts
+
 const CMO_PROFILE_TEMPLATE = {
   name: "Anonymous",
   current_role: "",
@@ -52,11 +54,4 @@ const CMO_PROFILE_TEMPLATE = {
   },
 };
 
-// Export both the template and the analysis prompt
-module.exports = {
-  CMO_PROFILE_TEMPLATE,
-  ANALYSIS_PROMPT: `Analyze this CMO interview transcript. Extract detailed information and rate skills from 0.0-1.0.
-
-Return ONLY the JSON matching this exact structure with no markdown formatting:
-${JSON.stringify(CMO_PROFILE_TEMPLATE, null, 2)}`,
-};
+module.exports = { CMO_PROFILE_TEMPLATE };
