@@ -1,4 +1,41 @@
+# Dependencies
 node_modules/
-.env
-.DS_Store
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
 dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Backend data
+backend/data/profiles/*
+!backend/data/profiles/.gitkeep
+backend/data/reports/*
+!backend/data/reports/.gitkeep
+
+# Keep frontend lib structure but ignore data
+frontend/src/lib/data/profiles/*
+frontend/src/lib/data/reports/*
+backend/data/
