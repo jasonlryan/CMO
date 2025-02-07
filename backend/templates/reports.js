@@ -19,18 +19,53 @@ const CANDIDATE_REPORT_TEMPLATE = {
     development_areas: [],
   },
   nextSteps: [],
+  qualitativeInsights: {
+    leadershipStyle: {
+      emphases: [],
+      values: [],
+      focus: [],
+    },
+    stakeholderManagement: {
+      cfoRelationship: "",
+      salesAlignment: "",
+      stakeholderEducation: "",
+    },
+  },
 };
 
 const CLIENT_REPORT_TEMPLATE = {
   title: "CMO Assessment Report - Client View",
-  skillAnalysis: {},
+  skillAnalysis: {
+    technical: [],
+    soft: [],
+    leadership: [],
+    commercial: [],
+  },
   depthAnalysis: [],
-  capabilityAnalysis: {},
-  evidenceAnalysis: {},
+  capabilityAnalysis: {
+    investor: [],
+    tech: [],
+  },
+  evidenceAnalysis: {
+    strengths: [],
+    development_areas: [],
+  },
   assessmentNotes: {
     redFlags: [],
     followUp: [],
     leadershipStyle: {},
+  },
+  qualitativeInsights: {
+    leadershipStyle: {
+      emphases: [],
+      values: [],
+      focus: [],
+    },
+    stakeholderManagement: {
+      cfoRelationship: "",
+      salesAlignment: "",
+      stakeholderEducation: "",
+    },
   },
 };
 
@@ -50,18 +85,18 @@ function generateReports(profile, scores) {
         score,
         gap: scores.gaps.softSkills[skill] || 0,
       })),
-      leadership: Object.entries(profile.skills.leadershipSkills || {}).map(
+      leadership: Object.entries(profile.skills.leadershipSkills).map(
         ([skill, score]) => ({
           skill,
           score,
-          gap: scores.gaps.leadershipSkills?.[skill] || 0,
+          gap: scores.gaps.leadershipSkills[skill] || 0,
         })
       ),
-      commercial: Object.entries(profile.skills.commercialAcumen || {}).map(
+      commercial: Object.entries(profile.skills.commercialAcumen).map(
         ([skill, score]) => ({
           skill,
           score,
-          gap: scores.gaps.commercialAcumen?.[skill] || 0,
+          gap: scores.gaps.commercialAcumen[skill] || 0,
         })
       ),
     },
@@ -70,7 +105,7 @@ function generateReports(profile, scores) {
         level,
         skills: Object.entries(skills).map(([skill, score]) => ({
           skill,
-          score,
+          score: parseFloat(score),
         })),
       })
     ),
@@ -78,13 +113,13 @@ function generateReports(profile, scores) {
       investor: Object.entries(profile.investor_capabilities || {}).map(
         ([capability, score]) => ({
           capability,
-          score,
+          score: parseFloat(score),
         })
       ),
       tech: Object.entries(profile.tech_readiness || {}).map(
         ([capability, score]) => ({
           capability,
-          score,
+          score: parseFloat(score),
         })
       ),
     },
@@ -107,6 +142,22 @@ function generateReports(profile, scores) {
         area,
         recommendations: [`Focus on developing ${area}`],
       })) || [],
+    qualitativeInsights: {
+      leadershipStyle: {
+        emphases: profile.qualitative_insights.leadership_style.emphases,
+        values: profile.qualitative_insights.leadership_style.values,
+        focus: profile.qualitative_insights.leadership_style.focus,
+      },
+      stakeholderManagement: {
+        cfoRelationship:
+          profile.qualitative_insights.stakeholder_management.cfo_relationship,
+        salesAlignment:
+          profile.qualitative_insights.stakeholder_management.sales_alignment,
+        stakeholderEducation:
+          profile.qualitative_insights.stakeholder_management
+            .stakeholder_education,
+      },
+    },
   };
 
   const clientReport = {
@@ -127,6 +178,7 @@ function generateReports(profile, scores) {
         style: profile.assessment_notes?.leadership_style || "",
       },
     },
+    qualitativeInsights: candidateReport.qualitativeInsights,
   };
 
   return { candidateReport, clientReport };

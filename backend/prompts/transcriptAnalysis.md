@@ -64,7 +64,14 @@ Tech Readiness (score 0-1):
 
 - Key strengths with specific examples
 - Development areas with context
-- Leadership style and approach
+- Leadership style and approach:
+  - Emphases (e.g., psychological safety, learning culture)
+  - Values (e.g., reverse mentoring, continuous learning)
+  - Focus areas (e.g., storytelling, data-driven decisions)
+- Stakeholder management approach:
+  - CFO relationship frameworks
+  - Sales alignment strategies
+  - Stakeholder education methods
 - Growth stage alignment with rationale
 - Red flags or concerns (if any)
 - Recommended follow-up areas
@@ -174,6 +181,18 @@ assessment_notes: {
 red_flags: [], // Array of concerns
 follow_up: [], // Array of topics
 leadership_style: "" // Narrative description
+},
+qualitative_insights: {
+leadership_style: {
+emphases: ["list", "of", "leadership", "emphases"],
+values: ["list", "of", "core", "values"],
+focus: ["list", "of", "focus", "areas"]
+},
+stakeholder_management: {
+cfo_relationship: "description of CFO relationship approach",
+sales_alignment: "description of sales alignment strategy",
+stakeholder_education: "description of stakeholder education methods"
+}
 }
 }
 

@@ -19,6 +19,20 @@ const CMO_PROFILE_TEMPLATE = {
       communication: 0,
       team_building: 0,
     },
+    leadershipSkills: {
+      vision_setting: 0,
+      team_development: 0,
+      change_management: 0,
+      strategic_influence: 0,
+      organizational_design: 0,
+    },
+    commercialAcumen: {
+      financial_modeling: 0,
+      market_sizing: 0,
+      revenue_optimization: 0,
+      resource_allocation: 0,
+      budget_management: 0,
+    },
   },
   skill_depth_levels: {
     strategic_understanding: {
@@ -60,6 +74,18 @@ const CMO_PROFILE_TEMPLATE = {
     red_flags: [],
     follow_up: [],
     leadership_style: "",
+  },
+  qualitative_insights: {
+    leadership_style: {
+      emphases: [],
+      values: [],
+      focus: [],
+    },
+    stakeholder_management: {
+      cfo_relationship: "",
+      sales_alignment: "",
+      stakeholder_education: "",
+    },
   },
 };
 
