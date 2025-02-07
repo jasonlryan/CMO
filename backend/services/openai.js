@@ -57,13 +57,6 @@ const openaiService = {
       // Parse the cleaned response
       const parsed = JSON.parse(cleanedContent);
 
-      // Debug log raw parsed data
-      console.log("\nOpenAI Raw Response:", {
-        hasSkills: !!parsed.skills,
-        skillKeys: parsed.skills ? Object.keys(parsed.skills) : [],
-        rawSkills: JSON.stringify(parsed.skills, null, 2),
-      });
-
       // Validate skills structure
       if (!validateSkills(parsed.skills)) {
         console.warn(
@@ -76,13 +69,6 @@ const openaiService = {
           commercialAcumen: { ...CMO_PROFILE_TEMPLATE.skills.commercialAcumen },
         };
       }
-
-      // Debug log after validation
-      console.log("\nSkills After Validation:", {
-        hasSkills: !!parsed.skills,
-        skillKeys: Object.keys(parsed.skills),
-        hardSkillsKeys: Object.keys(parsed.skills.hardSkills),
-      });
 
       // Convert string scores to numbers
       Object.keys(parsed.skills).forEach((category) => {

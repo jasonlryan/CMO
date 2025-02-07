@@ -88,13 +88,6 @@ function evaluateSkillsByStage(skills, stage) {
   // 1. Normalize stage name
   const normalizedStage = stage?.replace(" Stage", "");
 
-  console.log("\nEvaluateSkillsByStage Input:", {
-    hasSkills: !!skills,
-    originalStage: stage,
-    normalizedStage: normalizedStage,
-    hasValidWeights: !!STAGE_WEIGHTS[normalizedStage],
-  });
-
   // 2. Get weights with fallback
   const weights = STAGE_WEIGHTS[normalizedStage] || STAGE_WEIGHTS["Growth"];
 

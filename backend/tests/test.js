@@ -56,32 +56,14 @@ async function test() {
     const result = await handleAssessment(transcript);
     console.log("\n✓ Assessment processed");
 
-    // Add test logging
-    console.log("\n=== Skill Gaps ===");
-    console.log("Hard Skills:", result.scores.gaps.hardSkills);
-    console.log("Soft Skills:", result.scores.gaps.softSkills);
-    console.log("Leadership:", result.scores.gaps.leadershipSkills);
-    console.log("Commercial:", result.scores.gaps.commercialAcumen);
-
-    console.log("\n=== Maturity Score ===");
-    console.log("Overall Score:", result.scores.score);
-
     // 3. Verify reports were generated
     if (!result.reports?.candidate || !result.reports?.client) {
       throw new Error("Missing assessment reports");
     }
-    console.log("\n✓ Reports generated");
-
-    console.log("\nOutputs will be saved to:");
-    console.log("- Profiles:", path.join(__dirname, "../data/profiles"));
-    console.log("- Reports:", path.join(__dirname, "../data/reports"));
-
-    // After saving
-    console.log("\n✓ Files saved successfully");
-    console.log("Check the above directories to view the assessment results");
 
     // Test scoring system
-    console.log("\n=== Testing Scoring System ===");
+    // Remove these logs:
+    // - console.log("\n=== Testing Scoring System ===");  // Remove this header
 
     // Sample skills data
     const sampleSkills = {
@@ -108,19 +90,11 @@ async function test() {
     const stages = ["Early-Stage", "Growth", "Scale-Up", "Enterprise"];
 
     stages.forEach((stage) => {
-      console.log(`\nTesting ${stage} Stage:`);
+      // Remove these stage test logs
+      // - console.log(`\nTesting ${stage} Stage:`);
+      // - console.log(`Stage: ${stage}`);
       const result = evaluateSkillsByStage(sampleSkills, stage);
-
-      console.log("Maturity Score:", result.score);
-      console.log(
-        "Stage Alignment:",
-        result.stageAlignment.matches ? "✓ Matches" : "✗ Gaps Found"
-      );
-
-      if (!result.stageAlignment.matches) {
-        console.log("Gaps:", result.stageAlignment.gaps);
-        console.log("Recommendations:", result.stageAlignment.recommendations);
-      }
+      // - console.log(`Score: ${score}`);  // Remove score output
     });
   } catch (error) {
     console.error("\n✗ Test failed:");

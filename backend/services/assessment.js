@@ -1,22 +1,12 @@
 const { openaiService } = require("./openai");
 const { evaluateSkillsByStage } = require("./scoring");
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
+const { performance } = require("perf_hooks");
 const path = require("path");
 const fs = require("fs");
 
 // Helper to validate skill clusters
 function getValidCluster(cluster, defaultCluster) {
-  // Log validation steps
-  console.log("\nValidating cluster:", {
-    hasCluster: !!cluster,
-    isObject: typeof cluster === "object",
-    keys: cluster ? Object.keys(cluster) : [],
-    usingDefault:
-      !cluster ||
-      typeof cluster !== "object" ||
-      Object.keys(cluster || {}).length === 0,
-  });
-
   if (
     !cluster ||
     typeof cluster !== "object" ||
@@ -29,22 +19,19 @@ function getValidCluster(cluster, defaultCluster) {
 
 async function handleAssessment(transcript) {
   try {
+    console.log("\nStarting assessment...");
+    const startTotal = performance.now();
+
+    // OpenAI
+    console.log("Analyzing transcript with OpenAI...");
+    const startOpenAI = performance.now();
     const analysis = await openaiService.analyze(transcript);
+    const endOpenAI = performance.now();
+    console.log(`✓ OpenAI analysis complete (${endOpenAI - startOpenAI} ms)`);
 
-    // Log raw analysis
-    console.log("\nRaw Analysis:", {
-      hasSkills: !!analysis.skills,
-      skillKeys: analysis.skills ? Object.keys(analysis.skills) : [],
-      rawSkills: analysis.skills,
-    });
-
-    // Log template defaults
-    console.log("\nTemplate Defaults:", {
-      hasHardSkills: !!CMO_PROFILE_TEMPLATE.skills.hardSkills,
-      hardSkillsKeys: Object.keys(CMO_PROFILE_TEMPLATE.skills.hardSkills),
-    });
-
-    // Create profile with double validation
+    // Profile
+    console.log("\nCreating profile...");
+    const startProfile = performance.now();
     const profile = {
       ...CMO_PROFILE_TEMPLATE,
       id: new Date().toISOString(),
@@ -86,37 +73,39 @@ async function handleAssessment(transcript) {
         leadership_style: analysis.assessment_notes?.leadership_style || "",
       },
     };
+    const endProfile = performance.now();
+    console.log(`✓ Profile created (${endProfile - startProfile} ms)`);
 
-    // Log final profile
-    console.log("\nFinal Profile:", {
-      hasSkills: !!profile.skills,
-      hardSkills: profile.skills.hardSkills,
-      allSkillKeys: Object.keys(profile.skills),
-    });
-
-    // Debug log
-    console.log("Profile Skills:", {
-      hasHardSkills: !!profile.skills.hardSkills,
-      hardSkillsKeys: Object.keys(profile.skills.hardSkills),
-      allSkills: JSON.stringify(profile.skills, null, 2),
-    });
-
-    // 3. Score the assessment
+    // Scoring
+    console.log("\nCalculating scores...");
+    const startScoring = performance.now();
     const scores = evaluateSkillsByStage(
       profile.skills,
       profile.maturity_stage?.best_fit || "Growth"
     );
+    const endScoring = performance.now();
+    console.log(`✓ Scoring complete (${endScoring - startScoring} ms)`);
 
-    // 4. Generate reports
+    // Reports
+    console.log("\nGenerating reports...");
+    const startReports = performance.now();
     const reports = require("../templates/reports");
     const { candidateReport, clientReport } = reports.generateReports(
       profile,
       scores
     );
+    const endReports = performance.now();
+    console.log(`✓ Reports generated (${endReports - startReports} ms)`);
 
-    // 5. Save reports and profile
-    const timestamp = formatDate(new Date());
-    saveOutputs(profile, candidateReport, clientReport, timestamp);
+    // Saving
+    console.log("\nSaving outputs...");
+    const startSaving = performance.now();
+    saveOutputs(profile, candidateReport, clientReport, formatDate(new Date()));
+    const endSaving = performance.now();
+    console.log(`✓ Outputs saved (${endSaving - startSaving} ms)`);
+
+    const endTotal = performance.now();
+    console.log(`\n✓ Assessment complete (${endTotal - startTotal} ms)`);
 
     return {
       status: "success",
@@ -125,6 +114,14 @@ async function handleAssessment(transcript) {
       reports: {
         candidate: candidateReport,
         client: clientReport,
+      },
+      timing: {
+        total: endTotal - startTotal,
+        openai: endOpenAI - startOpenAI,
+        profile: endProfile - startProfile,
+        scoring: endScoring - startScoring,
+        reports: endReports - startReports,
+        saving: endSaving - startSaving,
       },
     };
   } catch (error) {

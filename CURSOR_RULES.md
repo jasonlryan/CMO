@@ -98,3 +98,35 @@
 - Ignore user input or suggestions
 - Proceed without acknowledging user contributions
 - Make changes without considering user's direction
+
+## 6. Code Modification Rules
+
+✅ MODIFICATIONS MUST:
+
+- Be exactly what was requested
+- Touch only specified functionality
+- Preserve all error handling
+- Keep business logic intact
+
+❌ NEVER:
+
+- Remove code when asked to remove logs
+- Modify error handling without explicit request
+- Reformat code without reason
+- Change functionality while doing cosmetic updates
+
+## 7. Logging Rules
+
+✅ LOGS MUST:
+
+- Keep all error logging (console.warn, console.error)
+- Keep all critical system warnings
+- Remove only debug/info logs when requested
+- Preserve logging that aids troubleshooting
+
+❌ NEVER:
+
+- Remove error handling when removing logs
+- Remove validation warnings
+- Mix log removal with code changes
+- Touch business logic when cleaning logs
