@@ -72,6 +72,7 @@ async function handleAssessment(transcript) {
     return {
       status: "success",
       profile,
+      scores,
       reports: {
         candidate: candidateReport,
         client: clientReport,

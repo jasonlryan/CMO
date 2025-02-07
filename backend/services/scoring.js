@@ -3,6 +3,8 @@ function calculateSkillGaps(skills, targetWeights) {
   const gaps = {
     hardSkills: {},
     softSkills: {},
+    leadershipSkills: {},
+    commercialAcumen: {},
   };
 
   // Calculate gaps for hard skills
@@ -13,6 +15,22 @@ function calculateSkillGaps(skills, targetWeights) {
   // Calculate gaps for soft skills
   Object.entries(skills.softSkills).forEach(([skill, score]) => {
     gaps.softSkills[skill] = Math.max(0, targetWeights.softSkills - score);
+  });
+
+  // Add leadership skills gaps
+  Object.entries(skills.leadershipSkills || {}).forEach(([skill, score]) => {
+    gaps.leadershipSkills[skill] = Math.max(
+      0,
+      targetWeights.leadershipSkills - score
+    );
+  });
+
+  // Add commercial acumen gaps
+  Object.entries(skills.commercialAcumen || {}).forEach(([skill, score]) => {
+    gaps.commercialAcumen[skill] = Math.max(
+      0,
+      targetWeights.commercialAcumen - score
+    );
   });
 
   return gaps;
@@ -32,6 +50,18 @@ function calculateMaturityScore(skills, maturityWeights) {
   Object.entries(skills.softSkills).forEach(([_, score]) => {
     totalScore += score * maturityWeights.softSkills;
     totalWeight += maturityWeights.softSkills;
+  });
+
+  // Add leadership skills scores
+  Object.entries(skills.leadershipSkills || {}).forEach(([_, score]) => {
+    totalScore += score * maturityWeights.leadershipSkills;
+    totalWeight += maturityWeights.leadershipSkills;
+  });
+
+  // Add commercial acumen scores
+  Object.entries(skills.commercialAcumen || {}).forEach(([_, score]) => {
+    totalScore += score * maturityWeights.commercialAcumen;
+    totalWeight += maturityWeights.commercialAcumen;
   });
 
   return totalWeight > 0 ? totalScore / totalWeight : 0;
