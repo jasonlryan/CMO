@@ -79,3 +79,22 @@
 - Hide model selection changes
 
 ## 6. Directory Structure
+
+## 7. Implementation Flow
+
+✅ MUST:
+
+- Complete current step fully before suggesting next steps
+- Verify all aspects of current feature are working
+- Test thoroughly before moving on
+- Listen to and process all user input before suggesting changes
+- Treat the collaboration as a partnership
+
+❌ NEVER:
+
+- Suggest next steps while current work is incomplete
+- Leave features partially implemented
+- Mix implementation phases
+- Ignore user input or suggestions
+- Proceed without acknowledging user contributions
+- Make changes without considering user's direction
