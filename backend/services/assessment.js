@@ -4,59 +4,108 @@ const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
 const path = require("path");
 const fs = require("fs");
 
-async function processTranscript(transcript) {
-  const analysis = await openaiService.analyze(transcript);
-  return {
-    ...CMO_PROFILE_TEMPLATE,
-    id: new Date().toISOString(),
-    name: "Anonymous",
-    current_role: analysis.current_role,
-    years_experience: analysis.years_experience,
-    industry: analysis.industry,
-    organization_type: analysis.organization_type,
-    skills: {
-      hardSkills: analysis.skills.hardSkills,
-      softSkills: analysis.skills.softSkills,
-      leadershipSkills: analysis.skills.leadershipSkills,
-      commercialAcumen: analysis.skills.commercialAcumen,
-    },
-    investor_capabilities: analysis.investor_capabilities,
-    tech_readiness: analysis.tech_readiness,
-    skill_depth_levels: analysis.skill_depth_levels,
-    key_strengths: analysis.key_strengths,
-    growth_areas: analysis.growth_areas,
-    maturity_stage: analysis.maturity_stage,
-    evidence: {
-      strengths: analysis.evidence.strengths,
-      development_areas: analysis.evidence.development_areas,
-    },
-    assessment_notes: {
-      red_flags: analysis.assessment_notes.red_flags,
-      follow_up: analysis.assessment_notes.follow_up,
-      leadership_style: analysis.assessment_notes.leadership_style,
-    },
-  };
+// Helper to validate skill clusters
+function getValidCluster(cluster, defaultCluster) {
+  // Log validation steps
+  console.log("\nValidating cluster:", {
+    hasCluster: !!cluster,
+    isObject: typeof cluster === "object",
+    keys: cluster ? Object.keys(cluster) : [],
+    usingDefault:
+      !cluster ||
+      typeof cluster !== "object" ||
+      Object.keys(cluster || {}).length === 0,
+  });
+
+  if (
+    !cluster ||
+    typeof cluster !== "object" ||
+    Object.keys(cluster || {}).length === 0
+  ) {
+    return { ...defaultCluster };
+  }
+  return cluster;
 }
 
 async function handleAssessment(transcript) {
   try {
-    // 1. Get OpenAI analysis
     const analysis = await openaiService.analyze(transcript);
 
-    // 2. Create CMO profile using template
+    // Log raw analysis
+    console.log("\nRaw Analysis:", {
+      hasSkills: !!analysis.skills,
+      skillKeys: analysis.skills ? Object.keys(analysis.skills) : [],
+      rawSkills: analysis.skills,
+    });
+
+    // Log template defaults
+    console.log("\nTemplate Defaults:", {
+      hasHardSkills: !!CMO_PROFILE_TEMPLATE.skills.hardSkills,
+      hardSkillsKeys: Object.keys(CMO_PROFILE_TEMPLATE.skills.hardSkills),
+    });
+
+    // Create profile with double validation
     const profile = {
       ...CMO_PROFILE_TEMPLATE,
-      ...analysis,
       id: new Date().toISOString(),
+      name: analysis.name || "Anonymous",
+      current_role: analysis.current_role || "",
+      years_experience: analysis.years_experience || 0,
+      industry: analysis.industry || "",
+      organization_type: analysis.organization_type || "B2B",
+      skills: {
+        hardSkills:
+          analysis.skills?.hardSkills || CMO_PROFILE_TEMPLATE.skills.hardSkills,
+        softSkills:
+          analysis.skills?.softSkills || CMO_PROFILE_TEMPLATE.skills.softSkills,
+        leadershipSkills: getValidCluster(
+          analysis.skills?.leadershipSkills,
+          CMO_PROFILE_TEMPLATE.skills.leadershipSkills
+        ),
+        commercialAcumen: getValidCluster(
+          analysis.skills?.commercialAcumen,
+          CMO_PROFILE_TEMPLATE.skills.commercialAcumen
+        ),
+      },
+      investor_capabilities: analysis.investor_capabilities || {},
+      tech_readiness: analysis.tech_readiness || {},
+      skill_depth_levels: analysis.skill_depth_levels || {},
+      key_strengths: analysis.key_strengths || [],
+      growth_areas: analysis.growth_areas || [],
+      maturity_stage: analysis.maturity_stage || {
+        best_fit: "",
+        alignment_reasons: [],
+      },
+      evidence: {
+        strengths: analysis.evidence?.strengths || {},
+        development_areas: analysis.evidence?.development_areas || {},
+      },
+      assessment_notes: {
+        red_flags: analysis.assessment_notes?.red_flags || [],
+        follow_up: analysis.assessment_notes?.follow_up || [],
+        leadership_style: analysis.assessment_notes?.leadership_style || "",
+      },
     };
 
-    // 3. Score the assessment
-    const scores = evaluateSkillsByStage(profile.skills, {
-      hardSkills: 0.8,
-      softSkills: 0.8,
-      leadershipSkills: 0.8,
-      commercialAcumen: 0.8,
+    // Log final profile
+    console.log("\nFinal Profile:", {
+      hasSkills: !!profile.skills,
+      hardSkills: profile.skills.hardSkills,
+      allSkillKeys: Object.keys(profile.skills),
     });
+
+    // Debug log
+    console.log("Profile Skills:", {
+      hasHardSkills: !!profile.skills.hardSkills,
+      hardSkillsKeys: Object.keys(profile.skills.hardSkills),
+      allSkills: JSON.stringify(profile.skills, null, 2),
+    });
+
+    // 3. Score the assessment
+    const scores = evaluateSkillsByStage(
+      profile.skills,
+      profile.maturity_stage?.best_fit || "Growth"
+    );
 
     // 4. Generate reports
     const reports = require("../templates/reports");
