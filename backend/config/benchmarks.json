@@ -1,0 +1,42 @@
+{
+  "Early-Stage": {
+    "hardSkills": 0.4,
+    "softSkills": 0.2,
+    "leadershipSkills": 0.2,
+    "commercialAcumen": 0.2,
+    "technical_capability": 0.7,
+    "leadership_capability": 0.6,
+    "investor_readiness": 0.5,
+    "tech_readiness": 0.6
+  },
+  "Growth": {
+    "hardSkills": 0.3,
+    "softSkills": 0.3,
+    "leadershipSkills": 0.2,
+    "commercialAcumen": 0.2,
+    "technical_capability": 0.8,
+    "leadership_capability": 0.7,
+    "investor_readiness": 0.6,
+    "tech_readiness": 0.7
+  },
+  "Scale-Up": {
+    "hardSkills": 0.2,
+    "softSkills": 0.3,
+    "leadershipSkills": 0.3,
+    "commercialAcumen": 0.2,
+    "technical_capability": 0.9,
+    "leadership_capability": 0.8,
+    "investor_readiness": 0.7,
+    "tech_readiness": 0.8
+  },
+  "Enterprise": {
+    "hardSkills": 0.2,
+    "softSkills": 0.2,
+    "leadershipSkills": 0.3,
+    "commercialAcumen": 0.3,
+    "technical_capability": 0.9,
+    "leadership_capability": 0.9,
+    "investor_readiness": 0.8,
+    "tech_readiness": 0.9
+  }
+} 

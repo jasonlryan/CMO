@@ -1,5 +1,7 @@
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
 const { debugLog } = require("../config");
+const fs = require("fs");
+const path = require("path");
 
 // Helper to fix precision and normalize numbers (available globally)
 function fixPrecision(num) {
@@ -43,49 +45,69 @@ function calculateSkillGaps(skills, targetWeights) {
   return gaps;
 }
 
-// Stage-specific weights
-const STAGE_WEIGHTS = {
-  "Early-Stage": {
-    hardSkills: 0.4,
-    softSkills: 0.2,
-    leadershipSkills: 0.2,
-    commercialAcumen: 0.2,
-    technical_capability: 0.7,
-    leadership_capability: 0.6,
-    investor_readiness: 0.5,
-    tech_readiness: 0.6,
-  },
-  Growth: {
-    hardSkills: 0.3,
-    softSkills: 0.3,
-    leadershipSkills: 0.2,
-    commercialAcumen: 0.2,
-    technical_capability: 0.8,
-    leadership_capability: 0.7,
-    investor_readiness: 0.6,
-    tech_readiness: 0.7,
-  },
-  "Scale-Up": {
-    hardSkills: 0.2,
-    softSkills: 0.3,
-    leadershipSkills: 0.3,
-    commercialAcumen: 0.2,
-    technical_capability: 0.9,
-    leadership_capability: 0.8,
-    investor_readiness: 0.7,
-    tech_readiness: 0.8,
-  },
-  Enterprise: {
-    hardSkills: 0.2,
-    softSkills: 0.2,
-    leadershipSkills: 0.3,
-    commercialAcumen: 0.3,
-    technical_capability: 0.9,
-    leadership_capability: 0.9,
-    investor_readiness: 0.8,
-    tech_readiness: 0.9,
-  },
-};
+// Load benchmark values from external JSON file
+const benchmarksPath = path.join(__dirname, "../config/benchmarks.json");
+debugLog("Attempting to load benchmarks from:", benchmarksPath);
+let STAGE_WEIGHTS;
+try {
+  const benchmarksData = fs.readFileSync(benchmarksPath, "utf8");
+  debugLog("Raw benchmark data:", benchmarksData.substring(0, 100) + "...");
+  STAGE_WEIGHTS = JSON.parse(benchmarksData);
+  debugLog("Loaded benchmark stages:", Object.keys(STAGE_WEIGHTS).join(", "));
+  debugLog("Benchmark Loading:", {
+    path: benchmarksPath,
+    loaded: Object.keys(STAGE_WEIGHTS),
+    sample: STAGE_WEIGHTS["Growth"],
+    exists: fs.existsSync(benchmarksPath),
+  });
+} catch (err) {
+  debugLog("Benchmark loading error:", err);
+  console.warn(
+    `Failed to load benchmarks from JSON (${err.message}), using default hard-coded values.`
+  );
+  STAGE_WEIGHTS = {
+    "Early-Stage": {
+      hardSkills: 0.4,
+      softSkills: 0.2,
+      leadershipSkills: 0.2,
+      commercialAcumen: 0.2,
+      technical_capability: 0.7,
+      leadership_capability: 0.6,
+      investor_readiness: 0.5,
+      tech_readiness: 0.6,
+    },
+    Growth: {
+      hardSkills: 0.3,
+      softSkills: 0.3,
+      leadershipSkills: 0.2,
+      commercialAcumen: 0.2,
+      technical_capability: 0.8,
+      leadership_capability: 0.7,
+      investor_readiness: 0.6,
+      tech_readiness: 0.7,
+    },
+    "Scale-Up": {
+      hardSkills: 0.2,
+      softSkills: 0.3,
+      leadershipSkills: 0.3,
+      commercialAcumen: 0.2,
+      technical_capability: 0.9,
+      leadership_capability: 0.8,
+      investor_readiness: 0.7,
+      tech_readiness: 0.8,
+    },
+    Enterprise: {
+      hardSkills: 0.2,
+      softSkills: 0.2,
+      leadershipSkills: 0.3,
+      commercialAcumen: 0.3,
+      technical_capability: 0.9,
+      leadership_capability: 0.9,
+      investor_readiness: 0.8,
+      tech_readiness: 0.9,
+    },
+  };
+}
 
 function calculateMaturityScore(skills, stage) {
   const weights = STAGE_WEIGHTS[stage] || STAGE_WEIGHTS["Growth"];
