@@ -66,27 +66,6 @@ const CMO_PROFILE_TEMPLATE = {
     best_fit: "",
     alignment_reasons: [],
   },
-  evidence: {
-    strengths: {},
-    development_areas: {},
-  },
-  assessment_notes: {
-    red_flags: [],
-    follow_up: [],
-    leadership_style: "",
-  },
-  qualitative_insights: {
-    leadership_style: {
-      emphases: [],
-      values: [],
-      focus: [],
-    },
-    stakeholder_management: {
-      cfo_relationship: "",
-      sales_alignment: "",
-      stakeholder_education: "",
-    },
-  },
   capability_analysis: {
     technical_capability: {
       score: 0,
@@ -112,6 +91,23 @@ const CMO_PROFILE_TEMPLATE = {
   evidence_analysis: {
     strengths: {},
     development_areas: {},
+  },
+  assessment_notes: {
+    red_flags: [],
+    follow_up: [],
+    leadership_style: "",
+  },
+  qualitative_insights: {
+    leadership_style: {
+      emphases: [],
+      values: [],
+      focus: [],
+    },
+    stakeholder_management: {
+      cfo_relationship: "",
+      sales_alignment: "",
+      stakeholder_education: "",
+    },
   },
 };
 

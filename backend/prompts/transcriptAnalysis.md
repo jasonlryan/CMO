@@ -68,6 +68,12 @@ Evaluate the candidate's capabilities in these areas with numeric scores (0.0-1.
 - investor_readiness: Ability to work with investors and fundraising
 - tech_readiness: Understanding and leveraging of technology
 
+Each capability MUST include:
+
+- score: Numeric value 0.0-1.0 indicating proficiency
+- gap: Numeric value 0.0-1.0 indicating improvement needed
+- recommendation: Specific action items for improvement
+
 Example structure:
 {
 "capability_analysis": {
@@ -76,7 +82,7 @@ Example structure:
 "gap": 0.1,
 "recommendation": "..."
 },
-// ... other capabilities
+// ... other capabilities with same structure
 }
 }
 
@@ -85,6 +91,12 @@ Provide specific examples and context for:
 
 - strengths: Key areas where candidate shows excellence
 - development_areas: Areas needing improvement
+
+Each area MUST include:
+
+- Specific examples with context
+- Observable evidence from transcript
+- Impact or results where available
 
 Example structure:
 {
@@ -253,5 +265,4 @@ stakeholder_education: "description of stakeholder education methods"
 }
 }
 }
-
 Return ONLY the JSON object, no other text or markdown formatting.

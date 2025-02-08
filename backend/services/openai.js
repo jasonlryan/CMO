@@ -41,6 +41,17 @@ function validateCapabilityAnalysis(capabilities) {
   });
 }
 
+// Add new validation helper
+function validateEvidenceAnalysis(evidenceAnalysis) {
+  if (!evidenceAnalysis) return false;
+  return (
+    evidenceAnalysis.strengths &&
+    typeof evidenceAnalysis.strengths === "object" &&
+    evidenceAnalysis.development_areas &&
+    typeof evidenceAnalysis.development_areas === "object"
+  );
+}
+
 // Add helper function for brace balancing
 function balanceBraces(content) {
   const openBraces = (content.match(/{/g) || []).length;
@@ -146,10 +157,7 @@ const openaiService = {
       }
 
       // Add validation for evidence_analysis
-      if (
-        !parsed.evidence_analysis?.strengths ||
-        !parsed.evidence_analysis?.development_areas
-      ) {
+      if (!validateEvidenceAnalysis(parsed.evidence_analysis)) {
         console.warn(
           "\nInvalid evidence_analysis structure from OpenAI, using template defaults"
         );
