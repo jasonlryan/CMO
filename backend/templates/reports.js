@@ -1,4 +1,4 @@
-const { evaluateSkillsByStage } = require("../services/scoring");
+const { evaluateSkillsByStage, fixPrecision } = require("../services/scoring");
 
 // Report templates - NO logic, just structure
 const CANDIDATE_REPORT_TEMPLATE = {
@@ -11,8 +11,7 @@ const CANDIDATE_REPORT_TEMPLATE = {
   },
   depthAnalysis: [],
   capabilityAnalysis: {
-    investor: [],
-    tech: [],
+    capabilities: [],
   },
   evidenceAnalysis: {
     strengths: [],
@@ -43,8 +42,7 @@ const CLIENT_REPORT_TEMPLATE = {
   },
   depthAnalysis: [],
   capabilityAnalysis: {
-    investor: [],
-    tech: [],
+    capabilities: [],
   },
   evidenceAnalysis: {
     strengths: [],
@@ -70,6 +68,12 @@ const CLIENT_REPORT_TEMPLATE = {
 };
 
 function generateReports(profile, scores) {
+  // Validate scores.capabilities exists
+  if (!Array.isArray(scores?.capabilities)) {
+    console.warn("Missing or invalid capabilities in scores");
+    scores.capabilities = [];
+  }
+
   const candidateReport = {
     ...CANDIDATE_REPORT_TEMPLATE,
     skillAnalysis: {
@@ -105,33 +109,27 @@ function generateReports(profile, scores) {
         level,
         skills: Object.entries(skills).map(([skill, score]) => ({
           skill,
-          score: parseFloat(score),
+          score: fixPrecision(score),
         })),
       })
     ),
     capabilityAnalysis: {
-      investor: Object.entries(profile.investor_capabilities || {}).map(
-        ([capability, score]) => ({
-          capability,
-          score: parseFloat(score),
-        })
-      ),
-      tech: Object.entries(profile.tech_readiness || {}).map(
-        ([capability, score]) => ({
-          capability,
-          score: parseFloat(score),
-        })
-      ),
+      capabilities: scores.capabilities.map((cap) => ({
+        capability: cap.name,
+        score: cap.score,
+        gap: cap.gap,
+        recommendation: cap.recommendation,
+      })),
     },
     evidenceAnalysis: {
-      strengths: Object.entries(profile.evidence?.strengths || {}).map(
+      strengths: Object.entries(profile.evidence_analysis?.strengths || {}).map(
         ([area, items]) => ({
           area,
           items,
         })
       ),
       development_areas: Object.entries(
-        profile.evidence?.development_areas || {}
+        profile.evidence_analysis?.development_areas || {}
       ).map(([area, items]) => ({
         area,
         items,
@@ -144,18 +142,21 @@ function generateReports(profile, scores) {
       })) || [],
     qualitativeInsights: {
       leadershipStyle: {
-        emphases: profile.qualitative_insights.leadership_style.emphases,
-        values: profile.qualitative_insights.leadership_style.values,
-        focus: profile.qualitative_insights.leadership_style.focus,
+        emphases:
+          profile.qualitative_insights?.leadership_style?.emphases || [],
+        values: profile.qualitative_insights?.leadership_style?.values || [],
+        focus: profile.qualitative_insights?.leadership_style?.focus || [],
       },
       stakeholderManagement: {
         cfoRelationship:
-          profile.qualitative_insights.stakeholder_management.cfo_relationship,
+          profile.qualitative_insights?.stakeholder_management
+            ?.cfo_relationship || "",
         salesAlignment:
-          profile.qualitative_insights.stakeholder_management.sales_alignment,
+          profile.qualitative_insights?.stakeholder_management
+            ?.sales_alignment || "",
         stakeholderEducation:
-          profile.qualitative_insights.stakeholder_management
-            .stakeholder_education,
+          profile.qualitative_insights?.stakeholder_management
+            ?.stakeholder_education || "",
       },
     },
   };

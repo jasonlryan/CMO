@@ -1,10 +1,5 @@
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
 
-// Helper to fix precision and normalize numbers (available globally)
-function fixPrecision(num) {
-  return Number(Number(num).toFixed(1)) || 0;
-}
-
 // Remove types and simplify
 function calculateSkillGaps(skills, targetWeights) {
   // Add null safety and normalize input
@@ -24,6 +19,9 @@ function calculateSkillGaps(skills, targetWeights) {
     leadershipSkills: {},
     commercialAcumen: {},
   };
+
+  // Helper to fix precision and normalize scores
+  const fixPrecision = (num) => Number(Number(num).toFixed(1)) || 0;
 
   // Process all 4 categories consistently
   ["hardSkills", "softSkills", "leadershipSkills", "commercialAcumen"].forEach(
@@ -48,51 +46,29 @@ const STAGE_WEIGHTS = {
     softSkills: 0.2,
     leadershipSkills: 0.2,
     commercialAcumen: 0.2,
-    technical_capability: 0.7,
-    leadership_capability: 0.6,
-    investor_readiness: 0.5,
-    tech_readiness: 0.6,
   },
   Growth: {
     hardSkills: 0.3,
     softSkills: 0.3,
     leadershipSkills: 0.2,
     commercialAcumen: 0.2,
-    technical_capability: 0.8,
-    leadership_capability: 0.7,
-    investor_readiness: 0.6,
-    tech_readiness: 0.7,
   },
   "Scale-Up": {
     hardSkills: 0.2,
     softSkills: 0.3,
     leadershipSkills: 0.3,
     commercialAcumen: 0.2,
-    technical_capability: 0.9,
-    leadership_capability: 0.8,
-    investor_readiness: 0.7,
-    tech_readiness: 0.8,
   },
   Enterprise: {
     hardSkills: 0.2,
     softSkills: 0.2,
     leadershipSkills: 0.3,
     commercialAcumen: 0.3,
-    technical_capability: 0.9,
-    leadership_capability: 0.9,
-    investor_readiness: 0.8,
-    tech_readiness: 0.9,
   },
 };
 
 function calculateMaturityScore(skills, stage) {
-  const weights = STAGE_WEIGHTS[stage] || STAGE_WEIGHTS["Growth"];
-  if (!weights) {
-    console.warn(
-      `Invalid stage "${stage}" in calculateMaturityScore, using Growth weights`
-    );
-  }
-
+  const weights = STAGE_WEIGHTS[stage];
   let totalScore = 0;
   let totalWeight = 0;
 
@@ -103,22 +79,17 @@ function calculateMaturityScore(skills, stage) {
       Object.values(clusterSkills).reduce((sum, score) => sum + score, 0) /
       Object.keys(clusterSkills).length;
 
-    totalScore += fixPrecision(clusterScore * clusterWeight);
+    totalScore += clusterScore * clusterWeight;
     totalWeight += clusterWeight;
   });
 
-  return totalWeight > 0 ? fixPrecision(totalScore / totalWeight) : 0;
+  return totalWeight > 0 ? Number((totalScore / totalWeight).toFixed(1)) : 0;
 }
 
 // Add new function to evaluate capabilities
 function evaluateCapabilities(capabilities, stage) {
-  const weights = STAGE_WEIGHTS[stage] || STAGE_WEIGHTS["Growth"];
-  if (!weights) {
-    console.warn(
-      `Invalid stage "${stage}" in evaluateCapabilities, using Growth weights`
-    );
-  }
-  const defaultWeight = 0.8;
+  const weights = STAGE_WEIGHTS[stage];
+  const defaultWeight = 0.8; // Make default weight explicit
 
   // Validate each capability has required fields
   const validatedCapabilities = Object.entries(capabilities).map(
@@ -129,8 +100,8 @@ function evaluateCapabilities(capabilities, stage) {
 
       return {
         name: key,
-        score: fixPrecision(score),
-        gap: fixPrecision(calculateGap(score, weights[key] || defaultWeight)),
+        score: score,
+        gap: calculateGap(score, weights[key] || defaultWeight),
         recommendation:
           capability.recommendation || "No recommendation provided",
         weight: weights[key] || defaultWeight,
@@ -212,5 +183,4 @@ module.exports = {
   evaluateSkillsByStage,
   calculateStageAlignment,
   calculateGap,
-  fixPrecision,
 };

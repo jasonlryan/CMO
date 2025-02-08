@@ -19,47 +19,36 @@
  * - ONLY test the flow and integration
  */
 
-const OpenAI = require("openai");
 const fs = require("fs");
 const path = require("path");
-const { ANALYSIS_PROMPT } = require("../prompts/promptLoader");
-const { openaiService } = require("../services/openai.js");
 const { handleAssessment } = require("../services/assessment.js");
-const { generateReports } = require("../templates/reports.js");
-const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile.js");
-const { evaluateSkillsByStage } = require("../services/scoring");
 require("dotenv").config();
 
 async function test() {
   try {
     console.log("\n=== CMO Assessment Test ===");
 
-    // 1. Load transcript & send to OpenAI
+    // 1. Load transcript from file
     const transcriptPath = path.join(__dirname, "../../docs/transcript.txt");
     const transcript = fs.readFileSync(transcriptPath, "utf8");
     console.log(`✓ Loaded transcript from: ${transcriptPath}`);
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: ANALYSIS_PROMPT },
-        { role: "user", content: transcript },
-      ],
-    });
-    console.log("\n✓ OpenAI analysis complete");
-
-    // 2. Process through assessment service
+    // 2. Process through assessment service (single OpenAI call)
     const result = await handleAssessment(transcript);
     console.log("\n✓ Assessment processed");
+
+    // Optionally log timing or other details
+    console.log("\nAssessment Timing:", result.timing);
 
     // 3. Verify reports were generated
     if (!result.reports?.candidate || !result.reports?.client) {
       throw new Error("Missing assessment reports");
     }
+    console.log("\n✓ Reports generated");
+
+    console.log("\nOutputs will be saved to:");
+    console.log("- Profiles:", path.join(__dirname, "../data/profiles"));
+    console.log("- Reports:", path.join(__dirname, "../data/reports"));
   } catch (error) {
     console.error("\n✗ Test failed:");
     console.error(`  Error: ${error.message}`);
