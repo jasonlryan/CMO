@@ -109,6 +109,7 @@ const openaiService = {
 
         // Parse the cleaned response
         const parsed = JSON.parse(cleanedContent);
+        debugLog("Maturity stage from OpenAI:", parsed.maturity_stage);
 
         // Validate skills structure
         if (!validateSkills(parsed.skills)) {
@@ -164,19 +165,27 @@ const openaiService = {
           };
         }
 
-        // Add validation for evidence_analysis
+        // After getting OpenAI response
         if (!validateEvidenceAnalysis(parsed.evidence_analysis)) {
-          warnLog("Invalid structure, using defaults:", {
-            component: "evidence_analysis",
-            expected: "OpenAI format",
-            using: "template defaults",
-          });
-          parsed.evidence_analysis = {
-            strengths: { ...CMO_PROFILE_TEMPLATE.evidence_analysis.strengths },
-            development_areas: {
-              ...CMO_PROFILE_TEMPLATE.evidence_analysis.development_areas,
-            },
-          };
+          // Try alternate key name from prompt
+          if (parsed.evidence) {
+            parsed.evidence_analysis = parsed.evidence;
+            delete parsed.evidence;
+          } else {
+            warnLog("Invalid structure, using defaults:", {
+              component: "evidence_analysis",
+              expected: "OpenAI format",
+              using: "template defaults",
+            });
+            parsed.evidence_analysis = {
+              strengths: {
+                ...CMO_PROFILE_TEMPLATE.evidence_analysis.strengths,
+              },
+              development_areas: {
+                ...CMO_PROFILE_TEMPLATE.evidence_analysis.development_areas,
+              },
+            };
+          }
         }
 
         return parsed;

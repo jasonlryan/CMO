@@ -1,6 +1,7 @@
 const { openaiService } = require("./openai");
 const { evaluateSkillsByStage } = require("./scoring");
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
+const { generateReports } = require("../templates/reports");
 const { performance } = require("perf_hooks");
 const {
   debugLog,
@@ -24,6 +25,41 @@ function getValidCluster(cluster, defaultCluster) {
   return cluster;
 }
 
+// Helper to create CMO profile from analysis
+function createProfile(analysis) {
+  return {
+    ...CMO_PROFILE_TEMPLATE,
+    id: new Date().toISOString(),
+    name: analysis.name || "Anonymous",
+    current_role: analysis.current_role || "",
+    years_experience: analysis.years_experience || 0,
+    industry: analysis.industry || "",
+    organization_type: analysis.organization_type || "B2B",
+    skills: {
+      hardSkills:
+        analysis.skills?.hardSkills || CMO_PROFILE_TEMPLATE.skills.hardSkills,
+      softSkills:
+        analysis.skills?.softSkills || CMO_PROFILE_TEMPLATE.skills.softSkills,
+      leadershipSkills: getValidCluster(
+        analysis.skills?.leadershipSkills,
+        CMO_PROFILE_TEMPLATE.skills.leadershipSkills
+      ),
+      commercialAcumen: getValidCluster(
+        analysis.skills?.commercialAcumen,
+        CMO_PROFILE_TEMPLATE.skills.commercialAcumen
+      ),
+    },
+    capability_analysis:
+      analysis.capability_analysis || CMO_PROFILE_TEMPLATE.capability_analysis,
+    evidence_analysis:
+      analysis.evidence_analysis || CMO_PROFILE_TEMPLATE.evidence_analysis,
+    maturity_stage: analysis.maturity_stage || {
+      best_fit: "Growth",
+      alignment_reasons: [],
+    },
+  };
+}
+
 async function handleAssessment(transcript) {
   try {
     infoLog("Starting assessment...");
@@ -32,16 +68,24 @@ async function handleAssessment(transcript) {
     // Core operations
     const analysis = await openaiService.analyze(transcript);
     const profile = createProfile(analysis);
+    debugLog("Profile maturity stage:", profile.maturity_stage);
     const scores = evaluateSkillsByStage(
       profile.skills,
-      profile.maturity_stage?.best_fit
+      profile.maturity_stage?.best_fit,
+      profile.capability_analysis
     );
     const reports = generateReports(profile, scores);
 
     const endTotal = performance.now();
     timeLog("Assessment complete", endTotal - startTotal);
 
-    return { status: "success", profile, scores, reports };
+    return {
+      status: "success",
+      profile,
+      scores,
+      reports,
+      timing: endTotal - startTotal,
+    };
   } catch (error) {
     errorLog("Assessment failed:", error);
     throw error;

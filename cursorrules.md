@@ -211,6 +211,48 @@ These are the non-negotiable "Hard Rules" that must always be followed:
 
 ---
 
+## Investigation Before Implementation
+
+1. **Code Search First**
+
+   - ALWAYS search existing codebase before writing new code
+   - Follow import chains to find existing functionality
+   - Check related files for similar patterns
+
+2. **Document Investigation**
+
+   - List files checked
+   - Note existing functionality found
+   - Identify gaps (if any) in current code
+
+3. **Propose Changes Only After**
+
+   - Confirming functionality doesn't exist
+   - Understanding existing patterns
+   - Identifying the minimal change needed
+
+4. **Safe Investigation Pattern**
+   ```
+   1. Identify the issue (e.g., missing function)
+   2. List relevant files to check
+   3. Follow import chains
+   4. Document what was found
+   5. ONLY THEN propose changes if needed
+   ```
+
+## Hard Rules for Changes
+
+1. **Code Duplication**
+
+   - STOP and check for existing code first
+   - Document where you checked
+   - Prove functionality doesn't exist
+   - Follow DRY (Don't Repeat Yourself) principle
+
+2. **File Organization**
+
+---
+
 ## Final Note
 
 All developers must adhere strictly to these rules. Incorporate these guidelines into your code reviews, pull request templates, and CI/CD checks to ensure consistent compliance. Regular audits and feedback sessions should be held to keep the team aligned with these standards.

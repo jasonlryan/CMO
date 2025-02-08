@@ -170,6 +170,7 @@ function evaluateCapabilities(capabilities, stage) {
 
 // Update main evaluation function
 function evaluateSkillsByStage(skills, stage, capabilities) {
+  debugLog("Stage received by scoring:", stage);
   if (!capabilities) {
     warnLog("Missing capabilities, using defaults");
     capabilities = CMO_PROFILE_TEMPLATE.capability_analysis;

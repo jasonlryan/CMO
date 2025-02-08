@@ -182,7 +182,10 @@ function generateReports(profile, scores) {
     qualitativeInsights: candidateReport.qualitativeInsights,
   };
 
-  return { candidateReport, clientReport };
+  return {
+    candidate: candidateReport,
+    client: clientReport,
+  };
 }
 
 module.exports = { generateReports };
