@@ -2,6 +2,7 @@ const { openaiService } = require("./openai");
 const { evaluateSkillsByStage } = require("./scoring");
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
 const { performance } = require("perf_hooks");
+const { debugLog } = require("../config");
 const path = require("path");
 const fs = require("fs");
 
@@ -32,6 +33,7 @@ async function handleAssessment(transcript) {
     // Profile
     console.log("\nCreating profile...");
     const startProfile = performance.now();
+
     const profile = {
       ...CMO_PROFILE_TEMPLATE,
       id: new Date().toISOString(),
@@ -78,18 +80,13 @@ async function handleAssessment(transcript) {
         leadership_style: analysis.assessment_notes?.leadership_style || "",
       },
     };
-    console.log("DEBUG - Capability Analysis:", {
-      fromAnalysis: analysis.capability_analysis,
-      fromTemplate: CMO_PROFILE_TEMPLATE.capability_analysis,
-      final: profile.capability_analysis,
-    });
     const endProfile = performance.now();
     console.log(`✓ Profile created (${endProfile - startProfile} ms)`);
 
     // Scoring
     console.log("\nCalculating scores...");
     const startScoring = performance.now();
-    console.log("DEBUG - Passing to scoring:", {
+    debugLog("DEBUG - Passing to scoring:", {
       skills: profile.skills,
       stage: profile.maturity_stage?.best_fit || "Growth",
       capabilities: profile.capability_analysis,

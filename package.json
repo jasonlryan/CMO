@@ -1,6 +1,8 @@
 {
   "scripts": {
+    "start": "node server.js",
     "test": "node backend/tests/test.js",
+    "toggle-debug": "chmod +x scripts/toggle-debug.sh && ./scripts/toggle-debug.sh",
     "dev:frontend": "cd frontend && npm run dev",
     "start:backend": "cd backend && python main.py"
   },

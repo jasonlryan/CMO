@@ -1,4 +1,5 @@
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
+const { debugLog } = require("../config");
 
 // Helper to fix precision and normalize numbers (available globally)
 function fixPrecision(num) {
@@ -7,7 +8,6 @@ function fixPrecision(num) {
 
 // Remove types and simplify
 function calculateSkillGaps(skills, targetWeights) {
-  // Add null safety and normalize input
   if (!targetWeights) {
     console.warn("\nMissing targetWeights in calculateSkillGaps");
     targetWeights = {
@@ -17,6 +17,8 @@ function calculateSkillGaps(skills, targetWeights) {
       commercialAcumen: 0.8,
     };
   }
+
+  debugLog("DEBUG - Calculating gaps with weights:", targetWeights);
 
   const gaps = {
     hardSkills: {},
@@ -144,7 +146,8 @@ function evaluateCapabilities(capabilities, stage) {
 
 // Update main evaluation function
 function evaluateSkillsByStage(skills, stage, capabilities) {
-  console.log("DEBUG - Inside scoring:", { skills, stage, capabilities });
+  debugLog("DEBUG - Inside scoring:", { skills, stage, capabilities });
+
   if (!capabilities) {
     console.warn("\nMissing capabilities in evaluateSkillsByStage");
     capabilities = CMO_PROFILE_TEMPLATE.capability_analysis;
@@ -159,6 +162,11 @@ function evaluateSkillsByStage(skills, stage, capabilities) {
   if (!STAGE_WEIGHTS[normalizedStage]) {
     console.warn(`\nInvalid stage "${stage}", using Growth stage weights`);
   }
+
+  debugLog("DEBUG - Using weights for stage:", {
+    stage: normalizedStage,
+    weights: weights,
+  });
 
   // 3. Use normalized weights
   return {

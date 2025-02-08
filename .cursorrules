@@ -1,11 +1,10 @@
-# HARD RULES FOR CHANGES
+# CMO Assessment Tool Rules Reference
 
-1. If user says NO to something, that means NO. Period. No exceptions.
-2. Never add mock/test data without explicit user approval
-3. Never try to "sneak in" changes the user rejected
-4. Never make changes the user hasn't approved
-5. Always show EXACT changes being proposed before making them
-6. If unsure, ASK the user first - don't assume
-7. Be 100% transparent about what changes are being suggested and why
-8. Admit mistakes immediately when caught - don't try to hide them
-9. Focus ONLY on what the user asked for - don't add "extras" 
+The complete rules and guidelines can be found in:
+cursorrules.md
+
+Please refer to this file for all rules, including:
+- Hard Rules for Changes
+- Model Selection
+- Implementation Guidelines
+- And more... 
