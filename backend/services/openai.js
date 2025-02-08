@@ -19,6 +19,35 @@ function validateSkills(skills) {
   });
 }
 
+// First add new validation helper
+function validateCapabilityAnalysis(capabilities) {
+  const requiredCapabilities = [
+    "technical_capability",
+    "leadership_capability",
+    "investor_readiness",
+    "tech_readiness",
+  ];
+
+  if (!capabilities) return false;
+
+  return requiredCapabilities.every((cap) => {
+    const capability = capabilities[cap];
+    return (
+      capability &&
+      typeof capability.score === "number" &&
+      typeof capability.gap === "number" &&
+      typeof capability.recommendation === "string"
+    );
+  });
+}
+
+// Add helper function for brace balancing
+function balanceBraces(content) {
+  const openBraces = (content.match(/{/g) || []).length;
+  const closeBraces = (content.match(/}/g) || []).length;
+  return content + "}".repeat(Math.max(0, openBraces - closeBraces));
+}
+
 const openaiService = {
   async analyze(transcript) {
     const openai = new OpenAI({
@@ -38,24 +67,25 @@ const openaiService = {
 
     try {
       // More robust cleaning
-      const cleanedContent = content
-        .replace(/\n/g, "") // Remove newlines
-        .replace(/\s+/g, " ") // Normalize spaces
-        .replace(/,\s*}/g, "}") // Remove trailing commas
-        .replace(/,\s*]/g, "]") // Remove trailing commas in arrays
-        .replace(/```json/g, "") // Remove markdown
-        .replace(/```/g, "") // Remove markdown
-        .replace(/^[^{]*/, "") // Remove anything before first {
-        .replace(/[^}]*$/, "") // Remove anything after last }
-        .trim(); // Clean up whitespace
-
-      // Ensure proper JSON structure
-      if (!cleanedContent.endsWith("}")) {
-        throw new Error("Malformed JSON: missing closing brace");
-      }
+      const cleanedContent = balanceBraces(
+        content
+          .replace(/\n/g, "") // Remove newlines
+          .replace(/\s+/g, " ") // Normalize spaces
+          .replace(/,\s*}/g, "}") // Remove trailing commas
+          .replace(/,\s*]/g, "]") // Remove trailing commas in arrays
+          .replace(/```json/g, "") // Remove markdown
+          .replace(/```/g, "") // Remove markdown
+          .replace(/^[^{]*/, "") // Remove anything before first {
+          .replace(/[^}]*$/, "") // Remove anything after last }
+          .trim() // Clean up whitespace
+      );
 
       // Parse the cleaned response
       const parsed = JSON.parse(cleanedContent);
+      console.log(
+        "DEBUG - Parsed capability_analysis:",
+        parsed.capability_analysis
+      );
 
       // Validate skills structure
       if (!validateSkills(parsed.skills)) {
@@ -85,6 +115,51 @@ const openaiService = {
           }
         });
       });
+
+      // Add validation for capability_analysis
+      if (!validateCapabilityAnalysis(parsed.capability_analysis)) {
+        console.warn(
+          "\nInvalid capability_analysis structure from OpenAI, using template defaults"
+        );
+        console.log(
+          "DEBUG - Before template defaults:",
+          parsed.capability_analysis
+        );
+        parsed.capability_analysis = {
+          technical_capability: {
+            ...CMO_PROFILE_TEMPLATE.capability_analysis.technical_capability,
+          },
+          leadership_capability: {
+            ...CMO_PROFILE_TEMPLATE.capability_analysis.leadership_capability,
+          },
+          investor_readiness: {
+            ...CMO_PROFILE_TEMPLATE.capability_analysis.investor_readiness,
+          },
+          tech_readiness: {
+            ...CMO_PROFILE_TEMPLATE.capability_analysis.tech_readiness,
+          },
+        };
+        console.log(
+          "DEBUG - After template defaults:",
+          parsed.capability_analysis
+        );
+      }
+
+      // Add validation for evidence_analysis
+      if (
+        !parsed.evidence_analysis?.strengths ||
+        !parsed.evidence_analysis?.development_areas
+      ) {
+        console.warn(
+          "\nInvalid evidence_analysis structure from OpenAI, using template defaults"
+        );
+        parsed.evidence_analysis = {
+          strengths: { ...CMO_PROFILE_TEMPLATE.evidence_analysis.strengths },
+          development_areas: {
+            ...CMO_PROFILE_TEMPLATE.evidence_analysis.development_areas,
+          },
+        };
+      }
 
       return parsed;
     } catch (error) {

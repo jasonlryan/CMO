@@ -60,6 +60,44 @@ Tech Readiness (score 0-1):
 - Martech implementation
 - Automation strategy
 
+Capability Analysis:
+Evaluate the candidate's capabilities in these areas with numeric scores (0.0-1.0), gaps, and recommendations:
+
+- technical_capability: Technical proficiency and implementation skills
+- leadership_capability: Leadership effectiveness and team management
+- investor_readiness: Ability to work with investors and fundraising
+- tech_readiness: Understanding and leveraging of technology
+
+Example structure:
+{
+"capability_analysis": {
+"technical_capability": {
+"score": 0.8,
+"gap": 0.1,
+"recommendation": "..."
+},
+// ... other capabilities
+}
+}
+
+Evidence Analysis:
+Provide specific examples and context for:
+
+- strengths: Key areas where candidate shows excellence
+- development_areas: Areas needing improvement
+
+Example structure:
+{
+"evidence_analysis": {
+"strengths": {
+"area": ["Example 1", "Example 2"]
+},
+"development_areas": {
+"area": ["Context 1", "Context 2"]
+}
+}
+}
+
 3. Identify:
 
 - Key strengths with specific examples
@@ -84,14 +122,12 @@ Tech Readiness (score 0-1):
 - Return a SINGLE valid JSON object with this structure:
 
 {
-name: "Anonymous",
-current_role: "Role from transcript",
-years_experience: "Number from transcript",
-industry: "Industry from transcript",
-organization_type: "B2B/B2C/Hybrid from transcript",
-
-// Scored capabilities - strict numeric format
-skills: {
+"name": "string",
+"current_role": "string",
+"years_experience": number,
+"industry": "string",
+"organization_type": "string",
+"skills": {
 hardSkills: {
 marketing_strategy: "score_0_to_1",
 digital_marketing: "score_0_to_1",
@@ -132,6 +168,28 @@ ai_understanding: "score_0_to_1",
 data_driven_decisions: "score_0_to_1",
 martech_implementation: "score_0_to_1",
 automation_strategy: "score_0_to_1"
+},
+capability_analysis: {
+technical_capability: {
+score: "score_0_to_1",
+gap: "gap_0_to_1",
+recommendation: "string"
+},
+leadership_capability: {
+score: "score_0_to_1",
+gap: "gap_0_to_1",
+recommendation: "string"
+},
+investor_readiness: {
+score: "score_0_to_1",
+gap: "gap_0_to_1",
+recommendation: "string"
+},
+tech_readiness: {
+score: "score_0_to_1",
+gap: "gap_0_to_1",
+recommendation: "string"
+}
 },
 skill_depth_levels: {
 hardSkills: {

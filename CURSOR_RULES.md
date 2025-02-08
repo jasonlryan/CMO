@@ -107,6 +107,8 @@
 - Touch only specified functionality
 - Preserve all error handling
 - Keep business logic intact
+- Preserve existing validation code
+- Add to existing code rather than replace
 
 ❌ NEVER:
 
@@ -114,6 +116,9 @@
 - Modify error handling without explicit request
 - Reformat code without reason
 - Change functionality while doing cosmetic updates
+- Remove existing validation
+- Replace working code with "simpler" solutions
+- Lose domain-specific checks and balances
 
 ## 7. Logging Rules
 

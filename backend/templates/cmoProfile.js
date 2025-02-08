@@ -87,6 +87,32 @@ const CMO_PROFILE_TEMPLATE = {
       stakeholder_education: "",
     },
   },
+  capability_analysis: {
+    technical_capability: {
+      score: 0,
+      gap: 0,
+      recommendation: "",
+    },
+    leadership_capability: {
+      score: 0,
+      gap: 0,
+      recommendation: "",
+    },
+    investor_readiness: {
+      score: 0,
+      gap: 0,
+      recommendation: "",
+    },
+    tech_readiness: {
+      score: 0,
+      gap: 0,
+      recommendation: "",
+    },
+  },
+  evidence_analysis: {
+    strengths: {},
+    development_areas: {},
+  },
 };
 
 module.exports = { CMO_PROFILE_TEMPLATE };

@@ -1,3 +1,5 @@
+const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
+
 // Remove types and simplify
 function calculateSkillGaps(skills, targetWeights) {
   // Add null safety and normalize input
@@ -84,7 +86,27 @@ function calculateMaturityScore(skills, stage) {
   return totalWeight > 0 ? Number((totalScore / totalWeight).toFixed(1)) : 0;
 }
 
-function evaluateSkillsByStage(skills, stage) {
+// Add new function to evaluate capabilities
+function evaluateCapabilities(capabilities, stage) {
+  const weights = STAGE_WEIGHTS[stage];
+
+  // Calculate weighted capability scores
+  return Object.entries(capabilities).map(([key, capability]) => ({
+    name: key,
+    score: capability.score,
+    gap: calculateGap(capability.score, weights[key] || 0.8),
+    recommendation: capability.recommendation,
+  }));
+}
+
+// Update main evaluation function
+function evaluateSkillsByStage(skills, stage, capabilities) {
+  console.log("DEBUG - Inside scoring:", { skills, stage, capabilities });
+  if (!capabilities) {
+    console.warn("\nMissing capabilities in evaluateSkillsByStage");
+    capabilities = CMO_PROFILE_TEMPLATE.capability_analysis;
+  }
+
   // 1. Normalize stage name
   const normalizedStage = stage?.replace(" Stage", "");
 
@@ -100,6 +122,7 @@ function evaluateSkillsByStage(skills, stage) {
     gaps: calculateSkillGaps(skills, weights),
     score: calculateMaturityScore(skills, normalizedStage),
     stageAlignment: calculateStageAlignment(skills, normalizedStage),
+    capabilities: evaluateCapabilities(capabilities, normalizedStage),
   };
 }
 
@@ -135,9 +158,15 @@ function calculateStageAlignment(skills, stage) {
   return alignment;
 }
 
+// Add helper function for calculating gaps
+function calculateGap(score, targetWeight) {
+  return Number(Math.max(0, targetWeight - score).toFixed(1));
+}
+
 module.exports = {
   calculateSkillGaps,
   calculateMaturityScore,
   evaluateSkillsByStage,
   calculateStageAlignment,
+  calculateGap,
 };

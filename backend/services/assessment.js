@@ -54,6 +54,11 @@ async function handleAssessment(transcript) {
           CMO_PROFILE_TEMPLATE.skills.commercialAcumen
         ),
       },
+      capability_analysis:
+        analysis.capability_analysis ||
+        CMO_PROFILE_TEMPLATE.capability_analysis,
+      evidence_analysis:
+        analysis.evidence_analysis || CMO_PROFILE_TEMPLATE.evidence_analysis,
       investor_capabilities: analysis.investor_capabilities || {},
       tech_readiness: analysis.tech_readiness || {},
       skill_depth_levels: analysis.skill_depth_levels || {},
@@ -73,15 +78,26 @@ async function handleAssessment(transcript) {
         leadership_style: analysis.assessment_notes?.leadership_style || "",
       },
     };
+    console.log("DEBUG - Capability Analysis:", {
+      fromAnalysis: analysis.capability_analysis,
+      fromTemplate: CMO_PROFILE_TEMPLATE.capability_analysis,
+      final: profile.capability_analysis,
+    });
     const endProfile = performance.now();
     console.log(`✓ Profile created (${endProfile - startProfile} ms)`);
 
     // Scoring
     console.log("\nCalculating scores...");
     const startScoring = performance.now();
+    console.log("DEBUG - Passing to scoring:", {
+      skills: profile.skills,
+      stage: profile.maturity_stage?.best_fit || "Growth",
+      capabilities: profile.capability_analysis,
+    });
     const scores = evaluateSkillsByStage(
       profile.skills,
-      profile.maturity_stage?.best_fit || "Growth"
+      profile.maturity_stage?.best_fit || "Growth",
+      profile.capability_analysis
     );
     const endScoring = performance.now();
     console.log(`✓ Scoring complete (${endScoring - startScoring} ms)`);
