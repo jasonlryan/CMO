@@ -145,10 +145,28 @@ Maintain this structure to avoid duplication and ensure consistency.
 
 **MUST:**
 
-- Retain all error logging (e.g., `console.warn`, `console.error`).
-- Keep all critical system warnings.
-- Remove only debug or informational logs when requested.
-- Preserve logs that aid in troubleshooting.
+- Follow strict logging level guidelines:
+
+  - INFO: Only stage transitions and major events
+  - DEBUG: Processing details and data state
+  - WARN: Validation issues and fallbacks
+  - ERROR: Operation failures and exceptions
+  - TIME: Performance measurements
+
+- Use standardized formats:
+
+  ```javascript
+  infoLog("Starting stage: <stage_name>");
+  debugLog("Processing <item>:", data);
+  warnLog("Invalid <item>, using defaults:", context);
+  errorLog("Failed to <operation>:", error);
+  timeLog("<operation>", duration);
+  ```
+
+- Follow ownership rules:
+  - Each operation logged only in its service
+  - Parent services only log their own operations
+  - Child services handle their own logging
 
 **NEVER:**
 
@@ -159,7 +177,25 @@ Maintain this structure to avoid duplication and ensure consistency.
 
 ---
 
-## 10. Hard Rules for Changes
+## 10. Documentation Management
+
+**When Creating New .md Files:**
+
+**MUST:**
+
+- Only write to files specifically requested by user
+- Complete file creation in a single response
+- Use correct syntax: ```markdown:path/to/file
+- Keep content focused and organized
+
+**NEVER:**
+
+- Create example or hypothetical files
+- Mix chat responses with file creation
+- Create files in wrong directories
+- Add unrequested documentation
+
+## 11. Hard Rules for Changes
 
 These are the non-negotiable "Hard Rules" that must always be followed:
 

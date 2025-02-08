@@ -21,8 +21,20 @@
 
 const fs = require("fs");
 const path = require("path");
-const { handleAssessment } = require("../services/assessment.js");
 require("dotenv").config();
+
+// Set DEBUG_MODE before requiring any services
+process.env.DEBUG_MODE = "false";
+
+// Verify DEBUG_MODE is set correctly
+if (process.env.DEBUG_MODE?.toLowerCase() === "true") {
+  warnLog("Debug enabled in test environment:", {
+    mode: process.env.DEBUG_MODE,
+    environment: "test",
+  });
+}
+
+const { handleAssessment } = require("../services/assessment.js");
 
 async function test() {
   try {

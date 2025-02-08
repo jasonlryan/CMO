@@ -1,5 +1,11 @@
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
-const { debugLog } = require("../config");
+const {
+  debugLog,
+  infoLog,
+  warnLog,
+  errorLog,
+  timeLog,
+} = require("../config/logging");
 const fs = require("fs");
 const path = require("path");
 
@@ -11,7 +17,10 @@ function fixPrecision(num) {
 // Remove types and simplify
 function calculateSkillGaps(skills, targetWeights) {
   if (!targetWeights) {
-    console.warn("\nMissing targetWeights in calculateSkillGaps");
+    warnLog("Invalid weights, using defaults:", {
+      expected: "custom weights",
+      using: "default weights",
+    });
     targetWeights = {
       hardSkills: 0.8,
       softSkills: 0.8,
@@ -20,7 +29,7 @@ function calculateSkillGaps(skills, targetWeights) {
     };
   }
 
-  debugLog("DEBUG - Calculating gaps with weights:", targetWeights);
+  debugLog("Calculating gaps with weights:", targetWeights);
 
   const gaps = {
     hardSkills: {},
@@ -47,24 +56,13 @@ function calculateSkillGaps(skills, targetWeights) {
 
 // Load benchmark values from external JSON file
 const benchmarksPath = path.join(__dirname, "../config/benchmarks.json");
-debugLog("Attempting to load benchmarks from:", benchmarksPath);
 let STAGE_WEIGHTS;
+
 try {
   const benchmarksData = fs.readFileSync(benchmarksPath, "utf8");
-  debugLog("Raw benchmark data:", benchmarksData.substring(0, 100) + "...");
   STAGE_WEIGHTS = JSON.parse(benchmarksData);
-  debugLog("Loaded benchmark stages:", Object.keys(STAGE_WEIGHTS).join(", "));
-  debugLog("Benchmark Loading:", {
-    path: benchmarksPath,
-    loaded: Object.keys(STAGE_WEIGHTS),
-    sample: STAGE_WEIGHTS["Growth"],
-    exists: fs.existsSync(benchmarksPath),
-  });
 } catch (err) {
-  debugLog("Benchmark loading error:", err);
-  console.warn(
-    `Failed to load benchmarks from JSON (${err.message}), using default hard-coded values.`
-  );
+  warnLog("Failed to load benchmarks:", err.message);
   STAGE_WEIGHTS = {
     "Early-Stage": {
       hardSkills: 0.4,
@@ -112,9 +110,11 @@ try {
 function calculateMaturityScore(skills, stage) {
   const weights = STAGE_WEIGHTS[stage] || STAGE_WEIGHTS["Growth"];
   if (!weights) {
-    console.warn(
-      `Invalid stage "${stage}" in calculateMaturityScore, using Growth weights`
-    );
+    warnLog("Invalid stage, using default:", {
+      stage: stage,
+      function: "calculateMaturityScore",
+      using: "Growth weights",
+    });
   }
 
   let totalScore = 0;
@@ -138,9 +138,11 @@ function calculateMaturityScore(skills, stage) {
 function evaluateCapabilities(capabilities, stage) {
   const weights = STAGE_WEIGHTS[stage] || STAGE_WEIGHTS["Growth"];
   if (!weights) {
-    console.warn(
-      `Invalid stage "${stage}" in evaluateCapabilities, using Growth weights`
-    );
+    warnLog("Invalid stage, using default:", {
+      stage: stage,
+      function: "evaluateCapabilities",
+      using: "Growth weights",
+    });
   }
   const defaultWeight = 0.8;
 
@@ -168,29 +170,18 @@ function evaluateCapabilities(capabilities, stage) {
 
 // Update main evaluation function
 function evaluateSkillsByStage(skills, stage, capabilities) {
-  debugLog("DEBUG - Inside scoring:", { skills, stage, capabilities });
-
   if (!capabilities) {
-    console.warn("\nMissing capabilities in evaluateSkillsByStage");
+    warnLog("Missing capabilities, using defaults");
     capabilities = CMO_PROFILE_TEMPLATE.capability_analysis;
   }
 
-  // 1. Normalize stage name
   const normalizedStage = stage?.replace(" Stage", "");
-
-  // 2. Get weights with fallback
   const weights = STAGE_WEIGHTS[normalizedStage] || STAGE_WEIGHTS["Growth"];
 
   if (!STAGE_WEIGHTS[normalizedStage]) {
-    console.warn(`\nInvalid stage "${stage}", using Growth stage weights`);
+    warnLog(`Invalid stage "${stage}", using Growth`);
   }
 
-  debugLog("DEBUG - Using weights for stage:", {
-    stage: normalizedStage,
-    weights: weights,
-  });
-
-  // 3. Use normalized weights
   return {
     gaps: calculateSkillGaps(skills, weights),
     score: calculateMaturityScore(skills, normalizedStage),
@@ -200,6 +191,10 @@ function evaluateSkillsByStage(skills, stage, capabilities) {
 }
 
 function calculateStageAlignment(skills, stage) {
+  debugLog("Processing stage alignment:", {
+    stage: stage,
+    skills: Object.keys(skills),
+  });
   const weights = STAGE_WEIGHTS[stage];
   const clusterScores = {};
 
@@ -223,7 +218,8 @@ function calculateStageAlignment(skills, stage) {
       alignment.matches = false;
       alignment.gaps[cluster] = Number((requiredScore - score).toFixed(1));
       alignment.recommendations.push(
-        `Improve ${cluster} skills to meet ${stage} requirements (gap: ${alignment.gaps[cluster]})`
+        `Improve ${cluster} skills to meet ${stage} requirements`,
+        { gap: alignment.gaps[cluster] }
       );
     }
   });

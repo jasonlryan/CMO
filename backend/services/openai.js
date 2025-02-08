@@ -1,7 +1,13 @@
 const OpenAI = require("openai");
 const { ANALYSIS_PROMPT } = require("../prompts/promptLoader");
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
-const { debugLog } = require("../config");
+const {
+  debugLog,
+  infoLog,
+  warnLog,
+  errorLog,
+  timeLog,
+} = require("../config/logging");
 
 // Helper to validate skills structure
 function validateSkills(skills) {
@@ -63,16 +69,14 @@ function balanceBraces(content) {
 const openaiService = {
   async analyze(transcript) {
     try {
-      debugLog(
-        "\nSending transcript to OpenAI:",
-        transcript.length,
-        "characters"
-      );
+      infoLog("Starting stage: OpenAI");
+      debugLog("Processing transcript:", transcript.length);
 
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
 
+      const startApi = performance.now();
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -81,14 +85,12 @@ const openaiService = {
         ],
         temperature: 0.3,
       });
+      const endApi = performance.now();
+      timeLog("OpenAI API call", endApi - startApi);
 
       const content = completion.choices[0].message.content;
 
-      debugLog(
-        "\nReceived response from OpenAI:",
-        content.length,
-        "characters"
-      );
+      debugLog("Received response:", content.length);
 
       try {
         // More robust cleaning
@@ -110,9 +112,11 @@ const openaiService = {
 
         // Validate skills structure
         if (!validateSkills(parsed.skills)) {
-          console.warn(
-            "\nInvalid skills structure from OpenAI, using template defaults"
-          );
+          warnLog("Invalid structure, using defaults:", {
+            component: "skills",
+            expected: "OpenAI format",
+            using: "template defaults",
+          });
           parsed.skills = {
             hardSkills: { ...CMO_PROFILE_TEMPLATE.skills.hardSkills },
             softSkills: { ...CMO_PROFILE_TEMPLATE.skills.softSkills },
@@ -143,13 +147,7 @@ const openaiService = {
 
         // Add validation for capability_analysis
         if (!validateCapabilityAnalysis(parsed.capability_analysis)) {
-          console.warn(
-            "\nInvalid capability_analysis structure from OpenAI, using template defaults"
-          );
-          debugLog(
-            "DEBUG - Before template defaults:",
-            parsed.capability_analysis
-          );
+          warnLog("Invalid capability analysis, using defaults");
           parsed.capability_analysis = {
             technical_capability: {
               ...CMO_PROFILE_TEMPLATE.capability_analysis.technical_capability,
@@ -164,17 +162,15 @@ const openaiService = {
               ...CMO_PROFILE_TEMPLATE.capability_analysis.tech_readiness,
             },
           };
-          debugLog(
-            "DEBUG - After template defaults:",
-            parsed.capability_analysis
-          );
         }
 
         // Add validation for evidence_analysis
         if (!validateEvidenceAnalysis(parsed.evidence_analysis)) {
-          console.warn(
-            "\nInvalid evidence_analysis structure from OpenAI, using template defaults"
-          );
+          warnLog("Invalid structure, using defaults:", {
+            component: "evidence_analysis",
+            expected: "OpenAI format",
+            using: "template defaults",
+          });
           parsed.evidence_analysis = {
             strengths: { ...CMO_PROFILE_TEMPLATE.evidence_analysis.strengths },
             development_areas: {
@@ -185,12 +181,14 @@ const openaiService = {
 
         return parsed;
       } catch (error) {
-        console.error("Failed to parse OpenAI response. Content:", content);
-        console.error("Cleaning error:", error.message);
+        errorLog("Failed to parse OpenAI response:", {
+          content: content,
+          error: error.message,
+        });
         throw new Error("Invalid JSON response from OpenAI");
       }
     } catch (error) {
-      console.error("Failed to parse OpenAI response:", error.message);
+      errorLog("Failed to parse OpenAI response:", error.message);
       throw error;
     }
   },
