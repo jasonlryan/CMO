@@ -39,3 +39,4 @@ backend/data/reports/*
 frontend/src/lib/data/profiles/*
 frontend/src/lib/data/reports/*
 backend/data/
+backend/services/backups/

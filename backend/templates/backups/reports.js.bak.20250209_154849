@@ -114,14 +114,9 @@ function generateReports(profile, scores) {
     ...CANDIDATE_REPORT_TEMPLATE,
     skillAnalysis: {
       technical: Object.entries(profile.skills.hardSkills).map(
-        ([skill, data]) => ({
+        ([skill, score]) => ({
           skill,
-          score: {
-            raw: data.score,
-            adjusted: data.scores.adjusted,
-            depth: data.depth,
-            evidence: data.evidence,
-          },
+          score,
           gap: scores.gaps.hardSkills[skill] || 0,
         })
       ),

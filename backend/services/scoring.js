@@ -14,8 +14,19 @@ function fixPrecision(num) {
   return Number(Number(num).toFixed(1)) || 0;
 }
 
+// Load depth levels config
+const depthLevelsPath = path.join(__dirname, "../config/depthLevels.json");
+let DEPTH_LEVELS;
+
+try {
+  const depthLevelsData = fs.readFileSync(depthLevelsPath, "utf8");
+  DEPTH_LEVELS = JSON.parse(depthLevelsData);
+} catch (err) {
+  warnLog("Failed to load depth levels:", err.message);
+}
+
 // Remove types and simplify
-function calculateSkillGaps(skills, targetWeights) {
+function calculateSkillGaps(skills, targetWeights, stage) {
   if (!targetWeights) {
     warnLog("Invalid weights, using defaults:", {
       expected: "custom weights",
@@ -38,13 +49,30 @@ function calculateSkillGaps(skills, targetWeights) {
     commercialAcumen: {},
   };
 
+  // Add depth adjustment
+  function adjustScoreForDepth(score, actualDepth, expectedDepth) {
+    if (actualDepth < expectedDepth) {
+      const gap = expectedDepth - actualDepth;
+      return score * (1 - gap / 3); // Max penalty of 3 levels
+    }
+    return score; // No penalty if meeting/exceeding depth
+  }
+
   // Process all 4 categories consistently
   ["hardSkills", "softSkills", "leadershipSkills", "commercialAcumen"].forEach(
     (category) => {
       if (skills[category]) {
-        Object.entries(skills[category]).forEach(([skill, score]) => {
+        Object.entries(skills[category]).forEach(([skill, skillData]) => {
+          // stage is now passed in, already normalized
+          const expectedDepth = DEPTH_LEVELS[stage]?.[category]?.[skill] || 1;
+          const actualDepth = skillData.depth || 1;
+          const adjustedScore = adjustScoreForDepth(
+            skillData.score,
+            actualDepth,
+            expectedDepth
+          );
           gaps[category][skill] = fixPrecision(
-            Math.max(0, targetWeights[category] - Number(score))
+            Math.max(0, targetWeights[category] - adjustedScore)
           );
         });
       }
@@ -63,48 +91,7 @@ try {
   STAGE_WEIGHTS = JSON.parse(benchmarksData);
 } catch (err) {
   warnLog("Failed to load benchmarks:", err.message);
-  STAGE_WEIGHTS = {
-    "Early-Stage": {
-      hardSkills: 0.4,
-      softSkills: 0.2,
-      leadershipSkills: 0.2,
-      commercialAcumen: 0.2,
-      technical_capability: 0.7,
-      leadership_capability: 0.6,
-      investor_readiness: 0.5,
-      tech_readiness: 0.6,
-    },
-    Growth: {
-      hardSkills: 0.3,
-      softSkills: 0.3,
-      leadershipSkills: 0.2,
-      commercialAcumen: 0.2,
-      technical_capability: 0.8,
-      leadership_capability: 0.7,
-      investor_readiness: 0.6,
-      tech_readiness: 0.7,
-    },
-    "Scale-Up": {
-      hardSkills: 0.2,
-      softSkills: 0.3,
-      leadershipSkills: 0.3,
-      commercialAcumen: 0.2,
-      technical_capability: 0.9,
-      leadership_capability: 0.8,
-      investor_readiness: 0.7,
-      tech_readiness: 0.8,
-    },
-    Enterprise: {
-      hardSkills: 0.2,
-      softSkills: 0.2,
-      leadershipSkills: 0.3,
-      commercialAcumen: 0.3,
-      technical_capability: 0.9,
-      leadership_capability: 0.9,
-      investor_readiness: 0.8,
-      tech_readiness: 0.9,
-    },
-  };
+  throw new Error("Cannot proceed without valid benchmarks configuration");
 }
 
 function calculateMaturityScore(skills, stage) {
@@ -124,8 +111,10 @@ function calculateMaturityScore(skills, stage) {
   Object.entries(skills).forEach(([cluster, clusterSkills]) => {
     const clusterWeight = weights[cluster];
     const clusterScore =
-      Object.values(clusterSkills).reduce((sum, score) => sum + score, 0) /
-      Object.keys(clusterSkills).length;
+      Object.values(clusterSkills).reduce(
+        (sum, skill) => sum + skill.score,
+        0
+      ) / Object.keys(clusterSkills).length;
 
     totalScore += fixPrecision(clusterScore * clusterWeight);
     totalWeight += clusterWeight;
@@ -183,8 +172,35 @@ function evaluateSkillsByStage(skills, stage, capabilities) {
     warnLog(`Invalid stage "${stage}", using Growth`);
   }
 
+  // Depth levels affect final scores
+  const depthWeights = {
+    1: 0.7, // Strategic - weighted less for early stage
+    2: 0.8, // Managerial
+    3: 0.9, // Conversational
+    4: 1.0, // Executional - full weight
+  };
+
+  // Calculate adjusted scores based on depth
+  Object.entries(skills).forEach(([category, skillSet]) => {
+    Object.entries(skillSet).forEach(([skill, data]) => {
+      const rawScore = data.score;
+      const depth = data.depth;
+
+      // Adjust score based on depth level weight
+      const depthWeight = depthWeights[depth] || 1.0;
+      const adjustedScore = rawScore * depthWeight;
+
+      // Store both raw and adjusted scores
+      skills[category][skill].scores = {
+        raw: rawScore,
+        adjusted: adjustedScore,
+        depth: depth,
+      };
+    });
+  });
+
   return {
-    gaps: calculateSkillGaps(skills, weights),
+    gaps: calculateSkillGaps(skills, weights, normalizedStage),
     score: calculateMaturityScore(skills, normalizedStage),
     stageAlignment: calculateStageAlignment(skills, normalizedStage),
     capabilities: evaluateCapabilities(capabilities, normalizedStage),
@@ -202,8 +218,10 @@ function calculateStageAlignment(skills, stage) {
   // Calculate average score for each cluster
   Object.entries(skills).forEach(([cluster, clusterSkills]) => {
     clusterScores[cluster] =
-      Object.values(clusterSkills).reduce((sum, score) => sum + score, 0) /
-      Object.keys(clusterSkills).length;
+      Object.values(clusterSkills).reduce(
+        (sum, skill) => sum + skill.score,
+        0
+      ) / Object.keys(clusterSkills).length;
   });
 
   // Check if scores meet stage requirements

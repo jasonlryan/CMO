@@ -1,4 +1,0 @@
-const OpenAI = require("openai");
-const { ANALYSIS_PROMPT } = require("../prompts/promptLoader");
-
-// ... rest of current file 

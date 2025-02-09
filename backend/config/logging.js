@@ -2,7 +2,7 @@ const DEBUG_MODE = process.env.DEBUG_MODE?.toLowerCase() === "true";
 
 // DEBUG - Only shows when DEBUG_MODE is true
 function debugLog(...args) {
-  if (DEBUG_MODE) {
+  if (process.env.DEBUG_MODE === "true") {
     console.log("[DEBUG]", ...args);
   }
 }

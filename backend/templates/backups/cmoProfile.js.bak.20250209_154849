@@ -10,13 +10,8 @@ const CMO_PROFILE_TEMPLATE = {
     hardSkills: {
       marketing_strategy: {
         score: 0,
-        depth: 1,
+        depth: 0,
         evidence: [],
-        scores: {
-          raw: 0,
-          adjusted: 0,
-          depth: 1,
-        },
       },
       digital_marketing: {
         score: 0,

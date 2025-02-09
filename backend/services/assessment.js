@@ -27,7 +27,7 @@ function getValidCluster(cluster, defaultCluster) {
 
 // Helper to create CMO profile from analysis
 function createProfile(analysis) {
-  return {
+  const profile = {
     ...CMO_PROFILE_TEMPLATE,
     id: new Date().toISOString(),
     name: analysis.name || "Anonymous",
@@ -58,6 +58,17 @@ function createProfile(analysis) {
       alignment_reasons: [],
     },
   };
+
+  console.log("\nCreated Profile:", {
+    id: profile.id,
+    hasSkills: !!profile.skills?.hardSkills,
+    skillCount: Object.keys(profile.skills?.hardSkills || {}).length,
+    sampleSkill: profile.skills?.hardSkills?.marketing_strategy,
+  });
+
+  // Log structure after object creation
+  debugLog("Profile Skills:", analysis.skills?.hardSkills);
+  return profile;
 }
 
 async function handleAssessment(transcript) {
@@ -78,6 +89,17 @@ async function handleAssessment(transcript) {
 
     const endTotal = performance.now();
     timeLog("Assessment complete", endTotal - startTotal);
+
+    // Save outputs with timestamp
+    const timestamp = formatDate(new Date());
+    saveOutputs(profile, reports.candidate, reports.client, timestamp);
+
+    console.log("\nSaved outputs:", {
+      timestamp,
+      profile: `profile_${timestamp}.json`,
+      candidate: `candidate_report_${timestamp}.json`,
+      client: `client_report_${timestamp}.json`,
+    });
 
     return {
       status: "success",

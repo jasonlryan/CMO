@@ -1,4 +1,5 @@
 const OpenAI = require("openai");
+require("dotenv").config(); // Ensure this is at top
 const { ANALYSIS_PROMPT } = require("../prompts/promptLoader");
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
 const {
@@ -11,6 +12,12 @@ const {
 
 // Helper to validate skills structure
 function validateSkills(skills) {
+  // Debug validation input
+  console.log("DEBUG - Validation Input:", {
+    hasSkills: !!skills,
+    clusters: skills ? Object.keys(skills) : "none",
+  });
+
   const requiredClusters = [
     "hardSkills",
     "softSkills",
@@ -22,7 +29,24 @@ function validateSkills(skills) {
   if (!skills) return false;
 
   return requiredClusters.every((cluster) => {
-    return typeof skills[cluster] === "object" && skills[cluster] !== null;
+    // Check cluster exists
+    if (typeof skills[cluster] !== "object" || skills[cluster] === null) {
+      return false;
+    }
+
+    // Check each skill has score, depth and evidence
+    return Object.values(skills[cluster]).every((skill) => {
+      return (
+        typeof skill === "object" &&
+        typeof skill.score === "number" &&
+        skill.score >= 0 &&
+        skill.score <= 1 &&
+        typeof skill.depth === "number" &&
+        skill.depth >= 1 &&
+        skill.depth <= 4 &&
+        Array.isArray(skill.evidence)
+      );
+    });
   });
 }
 
@@ -66,6 +90,34 @@ function balanceBraces(content) {
   return content + "}".repeat(Math.max(0, openBraces - closeBraces));
 }
 
+// Add structure correction
+function correctSkillsStructure(skills) {
+  const correctedSkills = {
+    hardSkills: {},
+    softSkills: {},
+    leadershipSkills: {},
+    commercialAcumen: {},
+  };
+
+  // Move any nested skills to top level
+  Object.entries(skills).forEach(([category, skillsObj]) => {
+    Object.entries(skillsObj).forEach(([skill, data]) => {
+      if (
+        skill === "softSkills" ||
+        skill === "leadershipSkills" ||
+        skill === "commercialAcumen"
+      ) {
+        correctedSkills[skill] = data;
+        delete skillsObj[skill];
+      } else {
+        correctedSkills[category][skill] = data;
+      }
+    });
+  });
+
+  return correctedSkills;
+}
+
 const openaiService = {
   async analyze(transcript) {
     try {
@@ -107,15 +159,39 @@ const openaiService = {
             .trim() // Clean up whitespace
         );
 
+        // Debug raw and cleaned content
+        debugLog("Raw OpenAI Response:", content);
+        debugLog("Cleaned Content:", cleanedContent);
+
         // Parse the cleaned response
         const parsed = JSON.parse(cleanedContent);
-        debugLog("Maturity stage from OpenAI:", parsed.maturity_stage);
+
+        console.log("\nOpenAI Parsed Response:", {
+          hasSkills: !!parsed.skills,
+          skillClusters: Object.keys(parsed.skills || {}),
+          sampleSkill: parsed.skills?.hardSkills?.marketing_strategy,
+        });
+
+        // Convert string scores to numbers
+        Object.keys(parsed.skills).forEach((category) => {
+          Object.keys(parsed.skills[category]).forEach((skill) => {
+            const skillObj = parsed.skills[category][skill];
+            // If skill is a number/string, convert to object structure
+            if (typeof skillObj !== "object" || !skillObj.score) {
+              parsed.skills[category][skill] = {
+                score: parseFloat(skillObj) || 0,
+                depth: 1,
+                evidence: [],
+              };
+            }
+          });
+        });
 
         // Validate skills structure
         if (!validateSkills(parsed.skills)) {
           warnLog("Invalid structure, using defaults:", {
             component: "skills",
-            expected: "OpenAI format",
+            expected: "OpenAI format with depth",
             using: "template defaults",
           });
           parsed.skills = {
@@ -129,22 +205,6 @@ const openaiService = {
             },
           };
         }
-
-        // Convert string scores to numbers
-        Object.keys(parsed.skills).forEach((category) => {
-          Object.keys(parsed.skills[category]).forEach((skill) => {
-            const originalValue = parsed.skills[category][skill];
-            parsed.skills[category][skill] = parseFloat(originalValue);
-
-            // Debug log any parsing issues
-            if (isNaN(parsed.skills[category][skill])) {
-              debugLog(`\nFailed to parse score for ${category}.${skill}:`, {
-                original: originalValue,
-                parsed: parsed.skills[category][skill],
-              });
-            }
-          });
-        });
 
         // Add validation for capability_analysis
         if (!validateCapabilityAnalysis(parsed.capability_analysis)) {
@@ -167,26 +227,38 @@ const openaiService = {
 
         // After getting OpenAI response
         if (!validateEvidenceAnalysis(parsed.evidence_analysis)) {
-          // Try alternate key name from prompt
-          if (parsed.evidence) {
-            parsed.evidence_analysis = parsed.evidence;
-            delete parsed.evidence;
-          } else {
-            warnLog("Invalid structure, using defaults:", {
-              component: "evidence_analysis",
-              expected: "OpenAI format",
-              using: "template defaults",
+          // Try to build evidence from skills
+          const evidence = {
+            strengths: {},
+            development_areas: {},
+          };
+
+          // Extract evidence from skills
+          Object.entries(parsed.skills || {}).forEach(([category, skills]) => {
+            Object.entries(skills).forEach(([skill, data]) => {
+              if (data.evidence?.length) {
+                evidence.strengths[skill] = data.evidence;
+              }
             });
-            parsed.evidence_analysis = {
-              strengths: {
-                ...CMO_PROFILE_TEMPLATE.evidence_analysis.strengths,
-              },
-              development_areas: {
-                ...CMO_PROFILE_TEMPLATE.evidence_analysis.development_areas,
-              },
-            };
-          }
+          });
+
+          parsed.evidence_analysis = evidence;
         }
+
+        // Add debug logging
+        debugLog("OpenAI Response Structure:", {
+          hasSkills: !!parsed.skills,
+          skillFormat: parsed.skills?.hardSkills?.marketing_strategy,
+        });
+
+        // Debug after conversion
+        console.log("DEBUG - After Conversion:", {
+          hasSkills: !!parsed.skills,
+          sampleSkill: parsed.skills?.hardSkills?.marketing_strategy,
+        });
+
+        // Use in parse function
+        parsed.skills = correctSkillsStructure(parsed.skills);
 
         return parsed;
       } catch (error) {
