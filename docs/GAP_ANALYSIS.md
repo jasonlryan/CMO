@@ -7,6 +7,7 @@ The CMO Assessment Tool currently has a basic foundation with:
 - React/Vite frontend
 - FastAPI backend
 - Supabase database
+- Node.js/Express backend
 - Basic OpenAI integration
 - Simple authentication
 - Minimal deployment scripts

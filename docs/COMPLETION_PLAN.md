@@ -34,11 +34,13 @@ After Python removal:
 
    - Pure JavaScript implementation
    - No Python dependencies
+   - JavaScript implementation
    - Can be completed in scoring.js
 
 2. Maturity Stage Alignment
    - Pure JavaScript implementation
    - No Python dependencies
+   - JavaScript implementation
    - Can be completed in scoring.js
 
 ### After Python Removal
