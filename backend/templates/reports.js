@@ -1,44 +1,26 @@
-const { evaluateSkillsByStage, fixPrecision } = require("../services/scoring");
+// Updated Report Templates
+
 const path = require("path");
 
-// Report templates - NO logic, just structure
+// Stub function for generating depth recommendations.
+// This can be extended to include more sophisticated logic.
+function generateDepthRecommendations(level, data) {
+  if (data && data.impact > 0) {
+    return [`Improve ${level} proficiency to reduce the current gap.`];
+  }
+  return [];
+}
+
 const CANDIDATE_REPORT_TEMPLATE = {
   title: "CMO Assessment Report - Candidate View",
   skillAnalysis: {
-    technical: [
-      {
-        skill: "",
-        score: {
-          raw: 0,
-          adjusted: 0,
-          depth: 0,
-          evidence: [],
-        },
-        gap: 0,
-      },
-    ],
-    soft: [
-      {
-        skill: "",
-        score: {
-          raw: 0,
-          adjusted: 0,
-          depth: 0,
-          evidence: [],
-        },
-        gap: 0,
-      },
-    ],
+    technical: [],
+    soft: [],
     leadership: [],
     commercial: [],
   },
   depthAnalysis: {
-    skillDepth: {
-      expected: 0,
-      actual: 0,
-      gap: 0,
-      impact: "",
-    },
+    byLevel: [],
   },
   capabilityAnalysis: {
     capabilities: [],
@@ -49,11 +31,7 @@ const CANDIDATE_REPORT_TEMPLATE = {
   },
   nextSteps: [],
   qualitativeInsights: {
-    leadershipStyle: {
-      emphases: [],
-      values: [],
-      focus: [],
-    },
+    leadershipStyle: { emphases: [], values: [], focus: [] },
     stakeholderManagement: {
       cfoRelationship: "",
       salesAlignment: "",
@@ -84,11 +62,7 @@ const CLIENT_REPORT_TEMPLATE = {
     leadershipStyle: {},
   },
   qualitativeInsights: {
-    leadershipStyle: {
-      emphases: [],
-      values: [],
-      focus: [],
-    },
+    leadershipStyle: { emphases: [], values: [], focus: [] },
     stakeholderManagement: {
       cfoRelationship: "",
       salesAlignment: "",
@@ -98,107 +72,145 @@ const CLIENT_REPORT_TEMPLATE = {
 };
 
 function generateReports(profile, scores) {
-  console.log("\nGenerating Reports:", {
-    hasProfile: !!profile,
-    hasScores: !!scores,
-    outputPath: path.join(__dirname, "../data/reports"),
-  });
-
-  // Validate scores.capabilities exists
-  if (!Array.isArray(scores?.capabilities)) {
-    console.warn("Missing or invalid capabilities in scores");
-    scores.capabilities = [];
-  }
-
+  // Generate candidate report with updated structure
   const candidateReport = {
     ...CANDIDATE_REPORT_TEMPLATE,
     skillAnalysis: {
-      technical: profile.skills.hardSkills.map((skill) => ({
-        skill: skill.name,
-        score: {
-          raw: skill.score,
-          adjusted: skill.scores.adjusted,
-          depth: skill.depth,
-          depthImpact: skill.scores.depthImpact,
-          evidence: skill.evidence,
-        },
-      })),
-      soft: Object.entries(profile.skills.softSkills).map(([skill, score]) => ({
+      technical: Object.entries(profile.skills.hardSkills).map(
+        ([skill, data]) => ({
+          skill,
+          score: {
+            raw: data.score,
+            adjusted: data.scores ? data.scores.adjusted : data.score,
+            depth: data.depth,
+            evidence: data.evidence,
+          },
+          gap:
+            scores.gaps && scores.gaps.hardSkills
+              ? scores.gaps.hardSkills[skill] || 0
+              : 0,
+        })
+      ),
+      soft: Object.entries(profile.skills.softSkills).map(([skill, data]) => ({
         skill,
-        score,
-        gap: scores.gaps.softSkills[skill] || 0,
+        score: {
+          raw: data.score,
+          adjusted: data.scores ? data.scores.adjusted : data.score,
+          depth: data.depth,
+          evidence: data.evidence,
+        },
+        gap:
+          scores.gaps && scores.gaps.softSkills
+            ? scores.gaps.softSkills[skill] || 0
+            : 0,
       })),
       leadership: Object.entries(profile.skills.leadershipSkills).map(
-        ([skill, score]) => ({
+        ([skill, data]) => ({
           skill,
-          score,
-          gap: scores.gaps.leadershipSkills[skill] || 0,
+          score: {
+            raw: data.score,
+            adjusted: data.scores ? data.scores.adjusted : data.score,
+            depth: data.depth,
+            evidence: data.evidence,
+          },
+          gap:
+            scores.gaps && scores.gaps.leadershipSkills
+              ? scores.gaps.leadershipSkills[skill] || 0
+              : 0,
         })
       ),
       commercial: Object.entries(profile.skills.commercialAcumen).map(
-        ([skill, score]) => ({
+        ([skill, data]) => ({
           skill,
-          score,
-          gap: scores.gaps.commercialAcumen[skill] || 0,
+          score: {
+            raw: data.score,
+            adjusted: data.scores ? data.scores.adjusted : data.score,
+            depth: data.depth,
+            evidence: data.evidence,
+          },
+          gap:
+            scores.gaps && scores.gaps.commercialAcumen
+              ? scores.gaps.commercialAcumen[skill] || 0
+              : 0,
         })
       ),
     },
     depthAnalysis: {
       byLevel: Object.entries(profile.depthAnalysis).map(([level, data]) => ({
-        level: level,
+        level,
         evidence: data.evidence,
         impact: data.impact,
         recommendations: generateDepthRecommendations(level, data),
       })),
     },
     capabilityAnalysis: {
-      capabilities: scores.capabilities.map((cap) => ({
-        capability: cap.name,
-        score: cap.score,
-        gap: cap.gap,
-        recommendation: cap.recommendation,
-      })),
+      capabilities: scores.capabilities
+        ? scores.capabilities.map((cap) => ({
+            capability: cap.name,
+            score: cap.score,
+            gap: cap.gap,
+            recommendation: cap.recommendation,
+          }))
+        : [],
     },
     evidenceAnalysis: {
-      strengths: Object.entries(profile.evidence_analysis?.strengths || {}).map(
-        ([area, items]) => ({
-          area,
-          items,
-        })
-      ),
+      strengths: Object.entries(
+        (profile.evidence_analysis && profile.evidence_analysis.strengths) || {}
+      ).map(([area, items]) => ({ area, items })),
       development_areas: Object.entries(
-        profile.evidence_analysis?.development_areas || {}
-      ).map(([area, items]) => ({
-        area,
-        items,
-      })),
+        (profile.evidence_analysis &&
+          profile.evidence_analysis.development_areas) ||
+          {}
+      ).map(([area, items]) => ({ area, items })),
     },
-    nextSteps:
-      profile.growth_areas?.map((area) => ({
-        area,
-        recommendations: [`Focus on developing ${area}`],
-      })) || [],
+    nextSteps: profile.growth_areas
+      ? profile.growth_areas.map((area) => ({
+          area,
+          recommendations: [`Focus on developing ${area}`],
+        }))
+      : [],
     qualitativeInsights: {
       leadershipStyle: {
         emphases:
-          profile.qualitative_insights?.leadership_style?.emphases || [],
-        values: profile.qualitative_insights?.leadership_style?.values || [],
-        focus: profile.qualitative_insights?.leadership_style?.focus || [],
+          (profile.qualitative_insights &&
+            profile.qualitative_insights.leadership_style &&
+            profile.qualitative_insights.leadership_style.emphases) ||
+          [],
+        values:
+          (profile.qualitative_insights &&
+            profile.qualitative_insights.leadership_style &&
+            profile.qualitative_insights.leadership_style.values) ||
+          [],
+        focus:
+          (profile.qualitative_insights &&
+            profile.qualitative_insights.leadership_style &&
+            profile.qualitative_insights.leadership_style.focus) ||
+          [],
       },
       stakeholderManagement: {
         cfoRelationship:
-          profile.qualitative_insights?.stakeholder_management
-            ?.cfo_relationship || "",
+          (profile.qualitative_insights &&
+            profile.qualitative_insights.stakeholder_management &&
+            profile.qualitative_insights.stakeholder_management
+              .cfo_relationship) ||
+          "",
         salesAlignment:
-          profile.qualitative_insights?.stakeholder_management
-            ?.sales_alignment || "",
+          (profile.qualitative_insights &&
+            profile.qualitative_insights.stakeholder_management &&
+            profile.qualitative_insights.stakeholder_management
+              .sales_alignment) ||
+          "",
         stakeholderEducation:
-          profile.qualitative_insights?.stakeholder_management
-            ?.stakeholder_education || "",
+          (profile.qualitative_insights &&
+            profile.qualitative_insights.stakeholder_management &&
+            profile.qualitative_insights.stakeholder_management
+              .stakeholder_education) ||
+          "",
       },
     },
   };
 
+  // Generate client report by reusing candidate report structure
   const clientReport = {
     ...CLIENT_REPORT_TEMPLATE,
     skillAnalysis: candidateReport.skillAnalysis,
@@ -207,14 +219,23 @@ function generateReports(profile, scores) {
     evidenceAnalysis: candidateReport.evidenceAnalysis,
     assessmentNotes: {
       redFlags:
-        profile.assessment_notes?.red_flags?.map((flag) => ({ issue: flag })) ||
+        (profile.assessment_notes &&
+          profile.assessment_notes.red_flags &&
+          profile.assessment_notes.red_flags.map((flag) => ({
+            issue: flag,
+          }))) ||
         [],
       followUp:
-        profile.assessment_notes?.follow_up?.map((topic) => ({
-          area: topic,
-        })) || [],
+        (profile.assessment_notes &&
+          profile.assessment_notes.follow_up &&
+          profile.assessment_notes.follow_up.map((topic) => ({
+            area: topic,
+          }))) ||
+        [],
       leadershipStyle: {
-        style: profile.assessment_notes?.leadership_style || "",
+        style: profile.assessment_notes
+          ? profile.assessment_notes.leadership_style
+          : "",
       },
     },
     qualitativeInsights: candidateReport.qualitativeInsights,

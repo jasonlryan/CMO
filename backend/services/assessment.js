@@ -57,6 +57,11 @@ function createProfile(analysis) {
       best_fit: "Growth",
       alignment_reasons: [],
     },
+    assessment_notes:
+      analysis.assessment_notes || CMO_PROFILE_TEMPLATE.assessment_notes,
+    qualitative_insights:
+      analysis.qualitative_insights ||
+      CMO_PROFILE_TEMPLATE.qualitative_insights,
   };
 
   console.log("\nCreated Profile:", {
@@ -64,6 +69,10 @@ function createProfile(analysis) {
     hasSkills: !!profile.skills?.hardSkills,
     skillCount: Object.keys(profile.skills?.hardSkills || {}).length,
     sampleSkill: profile.skills?.hardSkills?.marketing_strategy,
+    hasQualitativeData: {
+      notes: !!analysis.assessment_notes,
+      insights: !!analysis.qualitative_insights,
+    },
   });
 
   // Log structure after object creation
@@ -99,6 +108,12 @@ async function handleAssessment(transcript) {
       profile: `profile_${timestamp}.json`,
       candidate: `candidate_report_${timestamp}.json`,
       client: `client_report_${timestamp}.json`,
+    });
+
+    // Log qualitative data specifically
+    console.log("[Assessment] Qualitative Data:", {
+      hasQualitative: !!analysis.qualitative_insights,
+      hasNotes: !!analysis.assessment_notes,
     });
 
     return {
