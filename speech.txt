@@ -1,0 +1,13 @@
+Outline the Jason structure and create the document please. 
+Look at the depth levels. Plan and tell me what's next
+OK. Look at the transcript analysis markdown file which contains the prompt and tell me how it needs to be updated. 
+Show me how the prompt needs to be updated
+This isn't what I want. I've already set up a new branch called V3 and I've pushed the whole code base to it. I just want to check whether the local code base and the new branch V3 are In Sync. That's all. 
+There must be a simpler way to just check if they're In Sync. 
+Now look at the orchestration which is done in assessment.Js and the scoring which is done in scoring.Js. And let me know what the next steps are. 
+So looking at orchestration I can see that we create profile in assessment dot JS which suggests that we need to update the template in CMO profile dot JS can you confirm that? 
+OK, so we've looked at the CMO profile template. There's also the two reporting templates which are in reports dot JS. Can you ensure that they are updated please
+Do we have everything we need now to update scoring dot JS?
+Create a backup to scoring JS before we start this because it's quite a big change.
+Go ahead and make the scoring dot JS changes please
+Can you ensure that this? The scoring JS now is past the right information from profile Cmoprofile.Js. And that everything is in place for its generate reports

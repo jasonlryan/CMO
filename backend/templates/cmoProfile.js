@@ -15,7 +15,7 @@ const CMO_PROFILE_TEMPLATE = {
         scores: {
           raw: 0,
           adjusted: 0,
-          depth: 1,
+          depthImpact: 0,
         },
       },
       digital_marketing: {
@@ -139,6 +139,28 @@ const CMO_PROFILE_TEMPLATE = {
       cfo_relationship: "",
       sales_alignment: "",
       stakeholder_education: "",
+    },
+  },
+  depthAnalysis: {
+    strategic: {
+      level: 1,
+      evidence: [],
+      impact: 0,
+    },
+    managerial: {
+      level: 2,
+      evidence: [],
+      impact: 0,
+    },
+    conversational: {
+      level: 3,
+      evidence: [],
+      impact: 0,
+    },
+    executional: {
+      level: 4,
+      evidence: [],
+      impact: 0,
     },
   },
 };

@@ -113,18 +113,16 @@ function generateReports(profile, scores) {
   const candidateReport = {
     ...CANDIDATE_REPORT_TEMPLATE,
     skillAnalysis: {
-      technical: Object.entries(profile.skills.hardSkills).map(
-        ([skill, data]) => ({
-          skill,
-          score: {
-            raw: data.score,
-            adjusted: data.scores.adjusted,
-            depth: data.depth,
-            evidence: data.evidence,
-          },
-          gap: scores.gaps.hardSkills[skill] || 0,
-        })
-      ),
+      technical: profile.skills.hardSkills.map((skill) => ({
+        skill: skill.name,
+        score: {
+          raw: skill.score,
+          adjusted: skill.scores.adjusted,
+          depth: skill.depth,
+          depthImpact: skill.scores.depthImpact,
+          evidence: skill.evidence,
+        },
+      })),
       soft: Object.entries(profile.skills.softSkills).map(([skill, score]) => ({
         skill,
         score,
@@ -145,15 +143,14 @@ function generateReports(profile, scores) {
         })
       ),
     },
-    depthAnalysis: Object.entries(profile.skill_depth_levels || {}).map(
-      ([level, skills]) => ({
-        level,
-        skills: Object.entries(skills).map(([skill, score]) => ({
-          skill,
-          score: fixPrecision(score),
-        })),
-      })
-    ),
+    depthAnalysis: {
+      byLevel: Object.entries(profile.depthAnalysis).map(([level, data]) => ({
+        level: level,
+        evidence: data.evidence,
+        impact: data.impact,
+        recommendations: generateDepthRecommendations(level, data),
+      })),
+    },
     capabilityAnalysis: {
       capabilities: scores.capabilities.map((cap) => ({
         capability: cap.name,

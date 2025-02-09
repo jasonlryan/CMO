@@ -30,13 +30,11 @@ yarn-error.log*
 .DS_Store
 
 # Backend data
-backend/data/profiles/*
-!backend/data/profiles/.gitkeep
-backend/data/reports/*
-!backend/data/reports/.gitkeep
-
-# Keep frontend lib structure but ignore data
-frontend/src/lib/data/profiles/*
-frontend/src/lib/data/reports/*
+frontend/
 backend/data/
 backend/services/backups/
+backend/prompts/backups/
+backend/templates/backups/
+data/
+speech.txt
+
