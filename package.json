@@ -1,10 +1,10 @@
 {
   "scripts": {
-    "start": "node server.js",
+    "start": "node backend/index.js",
     "test": "node backend/tests/test.js",
     "toggle-debug": "chmod +x scripts/toggle-debug.sh && ./scripts/toggle-debug.sh",
     "dev:frontend": "cd frontend && npm run dev",
-    "start:backend": "cd backend && node index.js"
+    "start:backend": "node backend/index.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",

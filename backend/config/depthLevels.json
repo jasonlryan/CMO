@@ -1,0 +1,122 @@
+{
+  "Early-Stage": {
+    "hardSkills": {
+      "marketing_strategy": 4,
+      "digital_marketing": 4,
+      "data_analytics": 4,
+      "brand_development": 4,
+      "marketing_operations": 4,
+      "budget_management": 4
+    },
+    "softSkills": {
+      "communication": 3,
+      "strategic_thinking": 3,
+      "stakeholder_management": 4,
+      "team_development": 4
+    },
+    "leadershipSkills": {
+      "vision_setting": 3,
+      "team_development": 4,
+      "change_management": 3,
+      "strategic_influence": 3,
+      "organizational_design": 3
+    },
+    "commercialAcumen": {
+      "financial_modeling": 4,
+      "market_sizing": 4,
+      "revenue_optimization": 4,
+      "resource_allocation": 4,
+      "budget_management": 4
+    }
+  },
+  "Growth": {
+    "hardSkills": {
+      "marketing_strategy": 3,
+      "digital_marketing": 3,
+      "data_analytics": 3,
+      "brand_development": 3,
+      "marketing_operations": 3,
+      "budget_management": 3
+    },
+    "softSkills": {
+      "communication": 2,
+      "strategic_thinking": 2,
+      "stakeholder_management": 3,
+      "team_development": 3
+    },
+    "leadershipSkills": {
+      "vision_setting": 2,
+      "team_development": 3,
+      "change_management": 2,
+      "strategic_influence": 2,
+      "organizational_design": 2
+    },
+    "commercialAcumen": {
+      "financial_modeling": 3,
+      "market_sizing": 3,
+      "revenue_optimization": 3,
+      "resource_allocation": 3,
+      "budget_management": 3
+    }
+  },
+  "Scale-Up": {
+    "hardSkills": {
+      "marketing_strategy": 2,
+      "digital_marketing": 2,
+      "data_analytics": 2,
+      "brand_development": 2,
+      "marketing_operations": 2,
+      "budget_management": 2
+    },
+    "softSkills": {
+      "communication": 1,
+      "strategic_thinking": 1,
+      "stakeholder_management": 2,
+      "team_development": 2
+    },
+    "leadershipSkills": {
+      "vision_setting": 1,
+      "team_development": 2,
+      "change_management": 1,
+      "strategic_influence": 1,
+      "organizational_design": 1
+    },
+    "commercialAcumen": {
+      "financial_modeling": 2,
+      "market_sizing": 2,
+      "revenue_optimization": 2,
+      "resource_allocation": 2,
+      "budget_management": 2
+    }
+  },
+  "Enterprise": {
+    "hardSkills": {
+      "marketing_strategy": 1,
+      "digital_marketing": 1,
+      "data_analytics": 1,
+      "brand_development": 1,
+      "marketing_operations": 1,
+      "budget_management": 1
+    },
+    "softSkills": {
+      "communication": 1,
+      "strategic_thinking": 1,
+      "stakeholder_management": 1,
+      "team_development": 1
+    },
+    "leadershipSkills": {
+      "vision_setting": 1,
+      "team_development": 1,
+      "change_management": 1,
+      "strategic_influence": 1,
+      "organizational_design": 1
+    },
+    "commercialAcumen": {
+      "financial_modeling": 1,
+      "market_sizing": 1,
+      "revenue_optimization": 1,
+      "resource_allocation": 1,
+      "budget_management": 1
+    }
+  }
+} 

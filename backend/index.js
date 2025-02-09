@@ -6,7 +6,11 @@ require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
 
 // List of required environment variables
-const requiredEnvVars = ["OPENAI_API_KEY", "SUPABASE_URL", "SUPABASE_KEY"];
+const requiredEnvVars = [
+  "OPENAI_API_KEY",
+  "SUPABASE_PROJECT_URL",
+  "SUPABASE_ANON_KEY",
+];
 
 // Check for missing variables and throw an error if any are missing
 const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
@@ -18,8 +22,8 @@ if (missingVars.length > 0) {
 
 // Initialize the Supabase client
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
+  process.env.SUPABASE_PROJECT_URL,
+  process.env.SUPABASE_ANON_KEY
 );
 
 // Optionally export the supabase client for use in other modules

@@ -5,7 +5,7 @@
 The CMO Assessment Tool is built with a modern, scalable architecture:
 
 ```
-[React Frontend] <-> [FastAPI Backend] <-> [OpenAI API]
+[React Frontend] <-> [Node.js Backend] <-> [OpenAI API]
          ↕                    ↕
          └──────>[Supabase DB]<─────┘
 ```
@@ -19,7 +19,7 @@ The CMO Assessment Tool is built with a modern, scalable architecture:
 - Interactive data visualization
 - Responsive design
 
-### Backend (FastAPI)
+### Backend (Node.js/Express)
 
 - RESTful API endpoints
 - AI prompt management

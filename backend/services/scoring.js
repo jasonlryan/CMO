@@ -214,7 +214,7 @@ function calculateStageAlignment(skills, stage) {
   };
 
   Object.entries(clusterScores).forEach(([cluster, score]) => {
-    const requiredScore = weights[cluster] * 10; // Convert weight to target score
+    const requiredScore = weights[cluster];
     if (score < requiredScore) {
       alignment.matches = false;
       alignment.gaps[cluster] = Number((requiredScore - score).toFixed(1));

@@ -129,6 +129,7 @@ Example structure:
 4. Format Requirements:
 
 - All scores must be between 0.0 and 1.0
+- All depth levels must be 1-4 (Strategic to Executional)
 - Include specific examples for each strength/area
 - Provide clear rationale for growth stage alignment
 - Return a SINGLE valid JSON object with this structure:
@@ -141,9 +142,21 @@ Example structure:
 "organization_type": "string",
 "skills": {
 hardSkills: {
-marketing_strategy: "score_0_to_1",
-digital_marketing: "score_0_to_1",
-data_analytics: "score_0_to_1",
+marketing_strategy: {
+score: "score_0_to_1",
+depth: "1_to_4",
+evidence: ["examples showing depth and performance"]
+},
+digital_marketing: {
+score: "score_0_to_1",
+depth: "1_to_4",
+evidence: ["examples showing depth and performance"]
+},
+data_analytics: {
+score: "score_0_to_1",
+depth: "1_to_4",
+evidence: ["examples showing depth and performance"]
+},
 brand_development: "score_0_to_1",
 marketing_operations: "score_0_to_1",
 budget_management: "score_0_to_1"
