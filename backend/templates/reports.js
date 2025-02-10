@@ -72,6 +72,10 @@ const CLIENT_REPORT_TEMPLATE = {
 };
 
 function generateReports(profile, scores) {
+  if (!scores?.depthAnalysis) {
+    warnLog("Missing depth analysis in scores");
+    scores.depthAnalysis = DEFAULT_DEPTH_ANALYSIS;
+  }
   // Generate candidate report with updated structure
   const candidateReport = {
     ...CANDIDATE_REPORT_TEMPLATE,
@@ -136,11 +140,9 @@ function generateReports(profile, scores) {
       ),
     },
     depthAnalysis: {
-      byLevel: Object.entries(profile.depthAnalysis).map(([level, data]) => ({
-        level,
-        evidence: data.evidence,
-        impact: data.impact,
-        recommendations: generateDepthRecommendations(level, data),
+      byLevel: Object.entries(scores.depthAnalysis).map(([bucket, data]) => ({
+        ...data,
+        recommendations: generateDepthRecommendations(data),
       })),
     },
     capabilityAnalysis: {

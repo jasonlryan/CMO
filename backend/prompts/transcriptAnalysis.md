@@ -64,103 +64,103 @@ EXPECTED STRUCTURE:
 "hardSkills": {
 "marketing_strategy": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "digital_marketing": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "data_analytics": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "brand_development": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "marketing_operations": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "budget_management": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 }
 },
 "softSkills": {
 "communication": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "strategic_thinking": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "stakeholder_management": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "team_development": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "adaptability": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 }
 },
 "leadershipSkills": {
 "vision_setting": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "team_development": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "change_management": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "strategic_influence": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 }
 },
 "commercialAcumen": {
 "financial_modeling": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "market_sizing": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "revenue_optimization": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 },
 "resource_allocation": {
 "score": number,
-"depth": number,
+"reportedDepth": number,
 "evidence": ["string"]
 }
 }

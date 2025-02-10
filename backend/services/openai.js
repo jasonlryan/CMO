@@ -122,143 +122,66 @@ const openaiService = {
   async analyze(transcript) {
     try {
       infoLog("Starting stage: OpenAI");
-      debugLog("Processing transcript:", transcript.length);
+      const startApi = performance.now();
 
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
 
-      const startApi = performance.now();
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: ANALYSIS_PROMPT },
           { role: "user", content: transcript },
         ],
-        temperature: 0.3,
+        temperature: 0.2,
+        max_tokens: 4096,
       });
-      const endApi = performance.now();
-      timeLog("OpenAI API call", endApi - startApi);
 
       const content = completion.choices[0].message.content;
-
-      debugLog("Received response:", content.length);
+      timeLog("OpenAI API call", performance.now() - startApi);
 
       try {
-        // More robust cleaning
+        // Clean and parse response once
         const cleanedContent = balanceBraces(
           content
-            .replace(/\n/g, "") // Remove newlines
-            .replace(/\s+/g, " ") // Normalize spaces
-            .replace(/,\s*}/g, "}") // Remove trailing commas
-            .replace(/,\s*]/g, "]") // Remove trailing commas in arrays
-            .replace(/```json/g, "") // Remove markdown
-            .replace(/```/g, "") // Remove markdown
-            .replace(/^[^{]*/, "") // Remove anything before first {
-            .replace(/[^}]*$/, "") // Remove anything after last }
-            .trim() // Clean up whitespace
+            .replace(/\n/g, "")
+            .replace(/\s+/g, " ")
+            .replace(/,\s*}/g, "}")
+            .replace(/,\s*]/g, "]")
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim()
         );
 
-        // Debug raw and cleaned content
-        debugLog("Raw OpenAI Response:", content);
-        debugLog("Cleaned Content:", cleanedContent);
-
-        // Parse the cleaned response
+        // Parse JSON once and store
         const parsed = JSON.parse(cleanedContent);
 
+        // Validate complete structure first
+        if (!parsed.skills || typeof parsed.skills !== "object") {
+          throw new Error("Missing or invalid skills structure");
+        }
+
+        // Log parsed response
         console.log("\nOpenAI Parsed Response:", {
           hasSkills: !!parsed.skills,
           skillClusters: Object.keys(parsed.skills || {}),
           sampleSkill: parsed.skills?.hardSkills?.marketing_strategy,
         });
 
-        // Convert string scores to numbers
-        Object.keys(parsed.skills).forEach((category) => {
-          Object.keys(parsed.skills[category]).forEach((skill) => {
-            const skillObj = parsed.skills[category][skill];
-            // If skill is a number/string, convert to object structure
-            if (typeof skillObj !== "object" || !skillObj.score) {
-              parsed.skills[category][skill] = {
-                score: parseFloat(skillObj) || 0,
-                depth: 1,
-                evidence: [],
-              };
+        // Process skills structure
+        parsed.skills = correctSkillsStructure(parsed.skills);
+
+        // Only validate evidence after structure is confirmed
+        Object.entries(parsed.skills).forEach(([clusterName, cluster]) => {
+          Object.entries(cluster).forEach(([skillName, skill]) => {
+            if (!skill.evidence?.length) {
+              throw new Error(
+                `Missing evidence for ${clusterName}.${skillName}`
+              );
             }
           });
         });
-
-        // Validate skills structure
-        if (!validateSkills(parsed.skills)) {
-          warnLog("Invalid structure, using defaults:", {
-            component: "skills",
-            expected: "OpenAI format with depth",
-            using: "template defaults",
-          });
-          parsed.skills = {
-            hardSkills: { ...CMO_PROFILE_TEMPLATE.skills.hardSkills },
-            softSkills: { ...CMO_PROFILE_TEMPLATE.skills.softSkills },
-            leadershipSkills: {
-              ...CMO_PROFILE_TEMPLATE.skills.leadershipSkills,
-            },
-            commercialAcumen: {
-              ...CMO_PROFILE_TEMPLATE.skills.commercialAcumen,
-            },
-          };
-        }
-
-        // Add validation for capability_analysis
-        if (!validateCapabilityAnalysis(parsed.capability_analysis)) {
-          warnLog("Invalid capability analysis, using defaults");
-          parsed.capability_analysis = {
-            technical_capability: {
-              ...CMO_PROFILE_TEMPLATE.capability_analysis.technical_capability,
-            },
-            leadership_capability: {
-              ...CMO_PROFILE_TEMPLATE.capability_analysis.leadership_capability,
-            },
-            investor_readiness: {
-              ...CMO_PROFILE_TEMPLATE.capability_analysis.investor_readiness,
-            },
-            tech_readiness: {
-              ...CMO_PROFILE_TEMPLATE.capability_analysis.tech_readiness,
-            },
-          };
-        }
-
-        // After getting OpenAI response
-        if (!validateEvidenceAnalysis(parsed.evidence_analysis)) {
-          // Try to build evidence from skills
-          const evidence = {
-            strengths: {},
-            development_areas: {},
-          };
-
-          // Extract evidence from skills
-          Object.entries(parsed.skills || {}).forEach(([category, skills]) => {
-            Object.entries(skills).forEach(([skill, data]) => {
-              if (data.evidence?.length) {
-                evidence.strengths[skill] = data.evidence;
-              }
-            });
-          });
-
-          parsed.evidence_analysis = evidence;
-        }
-
-        // Add debug logging
-        debugLog("OpenAI Response Structure:", {
-          hasSkills: !!parsed.skills,
-          skillFormat: parsed.skills?.hardSkills?.marketing_strategy,
-        });
-
-        // Debug after conversion
-        console.log("DEBUG - After Conversion:", {
-          hasSkills: !!parsed.skills,
-          sampleSkill: parsed.skills?.hardSkills?.marketing_strategy,
-        });
-
-        // Use in parse function
-        parsed.skills = correctSkillsStructure(parsed.skills);
 
         return parsed;
       } catch (error) {
@@ -269,7 +192,7 @@ const openaiService = {
         throw new Error("Invalid JSON response from OpenAI");
       }
     } catch (error) {
-      errorLog("Failed to parse OpenAI response:", error.message);
+      errorLog("OpenAI analysis failed:", error);
       throw error;
     }
   },

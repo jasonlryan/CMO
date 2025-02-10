@@ -8,7 +8,7 @@ const CMO_PROFILE_TEMPLATE = {
   organization_type: "B2B", // Allowed values: "B2B", "B2C", "Hybrid"
   skills: {
     hardSkills: {
-      marketing_strategy: { score: 0, depth: 1, evidence: [] },
+      marketing_strategy: { score: 0.9, reportedDepth: 3, evidence: [] },
       digital_marketing: { score: 0, depth: 1, evidence: [] },
       data_analytics: { score: 0, depth: 1, evidence: [] },
       brand_development: { score: 0, depth: 1, evidence: [] },
@@ -40,7 +40,9 @@ const CMO_PROFILE_TEMPLATE = {
   key_strengths: [],
   growth_areas: [],
   maturity_stage: {
-    best_fit: "",
+    best_fit: "Growth",
+    scoring: "Growth",
+    depth: "Growth",
     alignment_reasons: [],
   },
   capability_analysis: {
@@ -67,10 +69,33 @@ const CMO_PROFILE_TEMPLATE = {
     },
   },
   depthAnalysis: {
-    strategic: { level: 1, evidence: [], impact: 0, skills: [] },
-    managerial: { level: 2, evidence: [], impact: 0, skills: [] },
-    conversational: { level: 3, evidence: [], impact: 0, skills: [] },
-    executional: { level: 4, evidence: [], impact: 0, skills: [] },
+    strategic: {
+      level: 1,
+      skills: [],
+      averageGap: 0,
+      narrative: "",
+    },
+    managerial: {
+      level: 2,
+      evidence: [],
+      impact: 0,
+      skills: [],
+      narrative: "",
+    },
+    conversational: {
+      level: 3,
+      evidence: [],
+      impact: 0,
+      skills: [],
+      narrative: "",
+    },
+    executional: {
+      level: 4,
+      evidence: [],
+      impact: 0,
+      skills: [],
+      narrative: "",
+    },
   },
 };
 

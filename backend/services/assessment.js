@@ -15,14 +15,25 @@ const fs = require("fs");
 
 // Helper to validate skill clusters
 function getValidCluster(cluster, defaultCluster) {
-  if (
-    !cluster ||
-    typeof cluster !== "object" ||
-    Object.keys(cluster || {}).length === 0
-  ) {
-    return { ...defaultCluster };
+  const validCluster = {};
+  for (const [skillName, skillData] of Object.entries(cluster)) {
+    validCluster[skillName] =
+      "reportedDepth" in skillData
+        ? {
+            score: skillData.score,
+            reportedDepth: skillData.reportedDepth,
+            evidence: skillData.evidence || [],
+          }
+        : {
+            ...defaultCluster[skillName],
+            evidence: skillData.evidence || [],
+          };
   }
-  return cluster;
+  if (Object.keys(validCluster).length === 0) {
+    warnLog("Invalid cluster structure");
+    return defaultCluster;
+  }
+  return validCluster;
 }
 
 // Helper to create CMO profile from analysis
@@ -53,9 +64,11 @@ function createProfile(analysis) {
       analysis.capability_analysis || CMO_PROFILE_TEMPLATE.capability_analysis,
     evidence_analysis:
       analysis.evidence_analysis || CMO_PROFILE_TEMPLATE.evidence_analysis,
-    maturity_stage: analysis.maturity_stage || {
-      best_fit: "Growth",
-      alignment_reasons: [],
+    maturity_stage: {
+      best_fit: analysis.maturity_stage?.best_fit || "Growth",
+      scoring: analysis.maturity_stage?.scoring || "Growth",
+      depth: analysis.maturity_stage?.depth || "Growth",
+      alignment_reasons: analysis.maturity_stage?.alignment_reasons || [],
     },
     assessment_notes:
       analysis.assessment_notes || CMO_PROFILE_TEMPLATE.assessment_notes,
@@ -87,12 +100,27 @@ async function handleAssessment(transcript) {
 
     // Core operations
     const analysis = await openaiService.analyze(transcript);
-    const profile = createProfile(analysis);
-    debugLog("Profile maturity stage:", profile.maturity_stage);
+
+    // Preserve categorical structure
+    const profile = {
+      ...analysis,
+      skills: {
+        hardSkills: analysis.skills?.hardSkills || {},
+        softSkills: analysis.skills?.softSkills || {},
+        leadershipSkills: analysis.skills?.leadershipSkills || {},
+        commercialAcumen: analysis.skills?.commercialAcumen || {},
+      },
+    };
+
+    debugLog("Profile skills structure:", {
+      clusters: Object.keys(profile.skills),
+      sampleSkill: profile.skills.hardSkills.marketing_strategy,
+    });
+
+    // Pass structured skills to scoring
     const scores = evaluateSkillsByStage(
       profile.skills,
-      profile.maturity_stage?.best_fit,
-      profile.capability_analysis
+      profile.maturity_stage.best_fit
     );
     const reports = generateReports(profile, scores);
 
