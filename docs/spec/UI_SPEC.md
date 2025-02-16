@@ -1,5 +1,21 @@
 # CMO Assessment Tool - UI Specification
 
+## Architecture Overview
+
+### Component Structure
+
+```mermaid
+graph TD
+    A[App] --> B[AssessmentLayout]
+    B --> C[Header]
+    B --> D[Navigation]
+    B --> E[MainContent]
+
+    E --> F[AssessmentDashboard]
+    E --> G[ReportViewer]
+    E --> H[AdminPanel]
+```
+
 ## Core Requirements
 
 ### 1. Report Viewer
@@ -35,14 +51,40 @@
   }
   ```
 
-### 2. Visualization Components
+### 2. State Management
+
+```typescript
+interface AppState {
+  currentProfile: CMOProfile | null;
+  assessmentList: Assessment[];
+  uiState: {
+    currentView: "dashboard" | "report" | "admin";
+    loading: boolean;
+    error: Error | null;
+  };
+}
+```
+
+### 3. Error Handling
+
+- Error boundaries for major components
+- API error handling
+- Fallback UI components
+
+### 4. Responsive Design
+
+- Breakpoint strategy
+- Mobile-first approach
+- Adaptive visualizations
+
+### 5. Visualization Components
 
 - **Radar Chart**: Skill category scores
 - **Bar Chart**: Depth gaps per skill
 - **Score Cards**: Overall and category scores
 - **Recommendation List**: Prioritized actions
 
-### 3. PDF Export
+### 6. PDF Export
 
 - Preserve layout and styling
 - Include all report sections
@@ -110,3 +152,12 @@ export default function ScoreCard({ title, score }) {
   );
 }
 ```
+
+## API Integration
+
+// Backend Endpoints
+{
+"assessment": "POST /api/assessment",
+"reports": "GET /api/reports/:id",
+"profiles": "GET /api/profiles/:id"
+}

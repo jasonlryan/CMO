@@ -25,7 +25,7 @@ This tool helps assess CMO candidates by analyzing interview transcripts and pro
 ```bash
 cd backend
 source venv/bin/activate
-uvicorn main:app --reload
+npm run start:backend
 ```
 
 4. Start the frontend:
