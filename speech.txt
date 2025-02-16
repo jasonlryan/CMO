@@ -11,3 +11,11 @@ Do we have everything we need now to update scoring dot JS?
 Create a backup to scoring JS before we start this because it's quite a big change.
 Go ahead and make the scoring dot JS changes please
 Can you ensure that this? The scoring JS now is past the right information from profile Cmoprofile.Js. And that everything is in place for its generate reports
+The profile template is defined in CMO profile JS and both report templates are defined in reports. 
+Refer to the prompt. Umm. Refer to open AI, JS. Refer to the orchestration assessment JS and to the algorithm in scoring JS in order to help define the pr
+Can you confirm that we're no longer using the old depth levels or the depth weights which are redundant and we've got clear separation of depth assessment? Based on the on the one four scale and skills scoring
+We need to separate depth and reported depth. Reported depth is based on the assessment of the depth level. Death is the number that is expected
+Depth is introduced to scoring JS umm by the jason file called depth levels. 
+Yes, this is good, but can I clarify that there shouldn't be depth introduced in the prompt? Depth is expected depth depth which is introduced from depth levels dot jason. Reported depth is the only thing I think that should come from the prompt. Can you clarify
+Also, is it problematic that? The depth levels effectively work in reverse that. Mean that level one is the highest and level 4 is the lowest. Is that factored in when we calculate depth level? There should be no penalty. For a for a candidate who's reported, depth exceeds that. Of the expected.
+He's right. Please write a detailed scoring spec that captures how we calculate skill scores and stage weights and how we do the depth assessment. And adjust the depth score save. This as a new file called algorithm.Md in the docs directory. 
