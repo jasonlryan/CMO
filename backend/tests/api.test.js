@@ -18,9 +18,21 @@ async function testEndpoints() {
       transcript,
     });
 
+    // Debug full response
+    console.log(
+      "Raw API Response:",
+      JSON.stringify(assessmentResponse.data, null, 2)
+    );
+
     // Verify response
-    const profile = assessmentResponse.data;
-    console.log("Full profile:", profile);
+    const result = assessmentResponse.data;
+    if (!result) {
+      throw new Error("No response data from API");
+    }
+    if (!result.profile) {
+      throw new Error("No profile object in response");
+    }
+    const profile = result.profile;
     if (!profile || !profile.id) {
       throw new Error("Invalid profile response");
     }
@@ -37,6 +49,7 @@ async function testEndpoints() {
     console.log("Profile Response:", profileResponse.data);
   } catch (error) {
     console.error("Test failed:", error.message);
+    throw error;
   }
 }
 
