@@ -15,9 +15,8 @@
     "hardSkills": {
       "marketing_strategy": {
         "score": 0.9,
-        "scores": {
-          "raw": 0.9
-        }
+        "reportedDepth": 3,
+        "evidence": ["string"]
       }
     }
   }
@@ -54,7 +53,7 @@ MaturityScore = Σ(CategoryScore × CategoryWeight) / ΣCategoryWeights
 
 1. Calculate category average:
    ```javascript
-   categoryScore = average(skill.scores.raw for all skills in category)
+   categoryScore = average(skill.score for all skills in category)
    ```
 2. Apply stage weight:
    ```javascript

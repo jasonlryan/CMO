@@ -1,8 +1,6 @@
 # CMO Assessment Tool - UI Specification
 
-## Architecture Overview
-
-### Component Structure
+## Component Architecture
 
 ```mermaid
 graph TD
@@ -14,6 +12,35 @@ graph TD
     E --> F[AssessmentDashboard]
     E --> G[ReportViewer]
     E --> H[AdminPanel]
+
+    F --> F1[TranscriptUpload]
+    F --> F2[AssessmentList]
+    F --> F3[QuickStats]
+
+    G --> G1[ScoreSummary]
+    G --> G2[SkillAnalysis]
+    G --> G3[DepthAnalysis]
+    G --> G4[Recommendations]
+```
+
+## API Integration
+
+```typescript
+// Core endpoints
+const API = {
+  assessment: "POST /api/assessment",
+  reports: "GET /api/reports/:id",
+  profiles: "GET /api/profiles/:id",
+};
+
+// Response types match backend/types.ts
+type APIResponse<T> = {
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+  };
+};
 ```
 
 ## Core Requirements
@@ -152,12 +179,3 @@ export default function ScoreCard({ title, score }) {
   );
 }
 ```
-
-## API Integration
-
-// Backend Endpoints
-{
-"assessment": "POST /api/assessment",
-"reports": "GET /api/reports/:id",
-"profiles": "GET /api/profiles/:id"
-}
