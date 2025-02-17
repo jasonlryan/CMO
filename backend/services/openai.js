@@ -128,6 +128,14 @@ const openaiService = {
         apiKey: process.env.OPENAI_API_KEY,
       });
 
+      // Debug transcript type and content
+      debugLog("OpenAI Input:", {
+        type: typeof transcript,
+        isString: typeof transcript === "string",
+        length: transcript?.length,
+        sample: transcript?.substring(0, 100),
+      });
+
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -135,7 +143,12 @@ const openaiService = {
           { role: "user", content: transcript },
         ],
         temperature: 0.2,
-        max_tokens: 4096,
+      });
+
+      // Debug API payload
+      debugLog("OpenAI API Payload:", {
+        messageTypes: completion.messages?.map((m) => typeof m.content),
+        userContent: typeof completion.messages?.[1]?.content,
       });
 
       const content = completion.choices[0].message.content;
@@ -198,4 +211,7 @@ const openaiService = {
   },
 };
 
-module.exports = { openaiService };
+module.exports = {
+  openaiService,
+  analyzeTranscript: openaiService.analyze,
+};

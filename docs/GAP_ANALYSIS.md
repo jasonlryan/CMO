@@ -7,11 +7,15 @@
    - [x] Depth score propagation not verified ✔️
    - [ ] Evidence collection incomplete in some skills
    - [x] Impact calculation validation missing ✔️
+   - [ ] API endpoints need implementation
+   - [ ] Service integration incomplete
+   - [ ] Data persistence flow undefined
 
 2. **Validation Gaps**
 
    - [x] Missing input validation for depth levels ✔️
-   - [ ] No schema validation for config files
+   - [x] API route types defined ✔️
+   - [ ] Request/response validation needed
    - [x] Incomplete error boundaries ✔️
 
 3. **Architecture Gaps**
