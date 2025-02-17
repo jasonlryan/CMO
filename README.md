@@ -1,88 +1,73 @@
 # CMO Assessment Tool
 
-A comprehensive assessment system for evaluating Chief Marketing Officer candidates.
+## Development Setup
 
-## Project Structure
-
-```
-/
-├── backend/                 # Backend Node.js services
-│   ├── config/             # Configuration files (benchmarks, depth levels)
-│   ├── prompts/            # OpenAI prompts and prompt loader
-│   ├── services/           # Core services (OpenAI, Assessment, Scoring)
-│   ├── templates/          # Data structure templates
-│   ├── tests/              # Test files
-│   └── types.ts            # TypeScript type definitions
-│
-├── docs/                   # Documentation
-│   ├── spec/              # Technical specifications
-│   ├── MASTER_PLAN.md     # Implementation roadmap
-│   ├── GAP_ANALYSIS.md    # Current gaps and priorities
-│   └── algorithm.md       # Scoring algorithm specification
-│
-├── scripts/               # Utility scripts
-│   └── toggle-debug.sh    # Debug mode toggle
-│
-├── .env                   # Environment variables
-├── .gitignore            # Git ignore rules
-├── package.json          # Project dependencies
-└── README.md             # Project documentation
-```
-
-## Core Components
-
-1. **Assessment Engine**
-
-   - OpenAI integration for transcript analysis
-   - Skill scoring and depth assessment
-   - Profile generation
-
-2. **Data Processing**
-
-   - Maturity stage evaluation
-   - Depth level analysis
-   - Gap identification
-
-3. **Report Generation**
-   - PDF report creation
-   - Visualization components
-   - Recommendation engine
-
-## Configuration
-
-The system uses two main configuration files:
-
-- `benchmarks.json`: Stage-specific skill weights
-- `depthLevels.json`: Expected skill depths per stage
-
-## Development
+1. **Install Dependencies**
 
 ```bash
-# Install dependencies
+# Install root dependencies
 npm install
 
-# Start backend
-npm run start:backend
+# Install frontend dependencies
+cd frontend && npm install
+```
 
-# Run tests
-npm test
+2. **Environment Setup**
 
+```bash
+# Copy example env file
+cp .env.example .env
+
+# Edit .env with your values
+# Required: OPENAI_API_KEY, SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY
+```
+
+3. **Run Development Servers**
+
+```bash
+# Run both frontend and backend in development mode
+npm run dev
+
+# Or run them separately:
+npm run dev:frontend  # Frontend only
+npm run dev:backend   # Backend only
+```
+
+4. **Testing**
+
+```bash
+# Run all tests
+npm run test:all
+
+# Run specific tests
+npm run test        # Core tests
+npm run test:api    # API tests
+```
+
+5. **Debugging**
+
+```bash
 # Toggle debug mode
 npm run toggle-debug
 ```
 
-## Documentation
+## Available Scripts
 
-- `MASTER_PLAN.md`: Implementation roadmap
-- `GAP_ANALYSIS.md`: Current development gaps
-- `algorithm.md`: Scoring algorithm specification
-- `UI_SPEC.md`: UI implementation details
+- `npm run dev` - Run full development environment
+- `npm run dev:frontend` - Run frontend only
+- `npm run dev:backend` - Run backend only with auto-reload
+- `npm run test:all` - Run all test suites
+- `npm run test` - Run core tests
+- `npm run test:api` - Run API tests
+- `npm run toggle-debug` - Toggle debug mode
 
-## Environment Variables
+## Ports
 
-Required environment variables:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
 
-- `OPENAI_API_KEY`: OpenAI API key
-- `SUPABASE_PROJECT_URL`: Supabase project URL
-- `SUPABASE_ANON_KEY`: Supabase anonymous key
-- `DEBUG_MODE`: Enable/disable debug logging
+For complete documentation, see:
+
+- `docs/MASTER_PLAN.md`
+- `docs/spec/ui_integration_guide.md`
+- `cursorrules.md`

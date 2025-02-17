@@ -3,23 +3,37 @@
     "start": "node backend/index.js",
     "test": "node backend/tests/test.js",
     "test:api": "node backend/tests/api.test.js",
-    "toggle-debug": "chmod +x scripts/toggle-debug.sh && ./scripts/toggle-debug.sh",
+    "test:all": "concurrently \"npm run test\" \"npm run test:api\"",
+    "kill-ports": "kill-port 3000 5173 || true",
+    "predev": "npm run kill-ports",
     "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "nodemon --config nodemon.json backend/index.js",
+    "dev": "concurrently --restart-tries 3 --restart-after 1000 -k \"npm run dev:backend\" \"npm run dev:frontend\"",
     "start:backend": "node backend/index.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
+    "@types/recharts": "^1.8.29",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.21.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
+    "lucide-react": "^0.475.0",
     "openai": "^4.0.0",
-    "react-chartjs-2": "^5.3.0"
+    "react-chartjs-2": "^5.3.0",
+    "recharts": "^2.15.1"
   },
   "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "concurrently": "^9.1.2",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-import": "^2.31.0",
+    "kill-port": "^2.0.1",
+    "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
   }
