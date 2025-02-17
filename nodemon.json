@@ -1,0 +1,24 @@
+{
+  "ignore": [
+    "frontend/*",
+    "**/*.test.js",
+    "**/*.spec.js",
+    "node_modules/*",
+    "docs/*",
+    "*.md",
+    ".git",
+    "backend/data/*",
+    "*.log"
+  ],
+  "watch": ["backend"],
+  "ext": "js,json",
+  "delay": "2500",
+  "verbose": true,
+  "events": {
+    "restart": "echo \"App restarted due to changes\""
+  },
+  "restartable": "rs",
+  "env": {
+    "NODE_ENV": "development"
+  }
+} 
