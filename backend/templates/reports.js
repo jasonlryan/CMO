@@ -1,6 +1,7 @@
 // Updated Report Templates
 
 const path = require("path");
+const { warnLog } = require("../config/logging");
 
 // Stub function for generating depth recommendations.
 // This can be extended to include more sophisticated logic.

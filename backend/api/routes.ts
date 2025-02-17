@@ -13,4 +13,4 @@ export interface APIRoutes {
       response: AssessmentResult;
     };
   };
-} 
+}

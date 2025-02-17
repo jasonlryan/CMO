@@ -22,6 +22,9 @@
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
+const assert = require("assert");
+const { handleAssessment } = require("../services/assessment");
+const { infoLog, errorLog } = require("../config/logging");
 
 // Set DEBUG_MODE before requiring any services
 process.env.DEBUG_MODE = "false";
@@ -34,36 +37,28 @@ if (process.env.DEBUG_MODE?.toLowerCase() === "true") {
   });
 }
 
-const { handleAssessment } = require("../services/assessment.js");
-
 async function test() {
   try {
     console.log("\n=== CMO Assessment Test ===");
 
     // 1. Load transcript from file
-    const transcriptPath = path.join(__dirname, "../../docs/transcript.txt");
-    const transcript = fs.readFileSync(transcriptPath, "utf8");
-    console.log(`✓ Loaded transcript from: ${transcriptPath}`);
+    const transcript = fs.readFileSync(
+      path.join(__dirname, "../../docs/transcript.txt"),
+      "utf-8"
+    );
 
     // 2. Process through assessment service (single OpenAI call)
     const result = await handleAssessment(transcript);
-    console.log("\n✓ Assessment processed");
-
-    // Optionally log timing or other details
-    console.log("\nAssessment Timing:", result.timing);
+    infoLog("Assessment complete", { timing: result.timing });
 
     // 3. Verify reports were generated
     if (!result.reports?.candidate || !result.reports?.client) {
       throw new Error("Missing assessment reports");
     }
-    console.log("\n✓ Reports generated");
-
-    console.log("\nOutputs will be saved to:");
-    console.log("- Profiles:", path.join(__dirname, "../data/profiles"));
-    console.log("- Reports:", path.join(__dirname, "../data/reports"));
   } catch (error) {
     console.error("\n✗ Test failed:");
     console.error(`  Error: ${error.message}`);
+    errorLog("Test failed", error);
     process.exit(1);
   }
 }

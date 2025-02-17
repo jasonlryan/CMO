@@ -24,7 +24,6 @@ This tool helps assess CMO candidates by analyzing interview transcripts and pro
 
 ```bash
 cd backend
-source venv/bin/activate
 npm run start:backend
 ```
 

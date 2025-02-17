@@ -155,14 +155,11 @@ async function handleAssessment(transcript) {
       hasNotes: !!analysis.assessment_notes,
     });
 
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, "");
-    const id = `cmo_${timestamp}`;
-
     return {
       status: "success",
       profile: {
         ...profile,
-        id,
+        id: `cmo_${new Date().toISOString().replace(/[^0-9]/g, "")}`,
       },
       scores,
       reports,

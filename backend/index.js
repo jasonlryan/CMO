@@ -4,6 +4,7 @@
 require("dotenv").config();
 
 const { createClient } = require("@supabase/supabase-js");
+const { server } = require("./api/server.js"); // Using server.js
 
 // List of required environment variables
 const requiredEnvVars = [
@@ -34,3 +35,9 @@ console.log("Backend initialized successfully using Node.js.");
 
 // If you plan to add an HTTP server later (for example, using Express or Fastify),
 // you could set it up here.
+
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
