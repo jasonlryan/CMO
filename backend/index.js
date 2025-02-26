@@ -43,7 +43,8 @@ try {
   process.exit(1);
 }
 
-// In development environment, start the server on port
+// Only start the server in development mode
+// In production (Vercel), we'll export the handler function
 if (process.env.NODE_ENV !== "production") {
   const PORT = 3000; // Always use port 3000
   let serverInstance = null;
@@ -197,9 +198,16 @@ if (process.env.NODE_ENV !== "production") {
 // Attach Supabase to the server object for access in other files
 server.supabase = supabase;
 
-// Export the Express app properly for Vercel Functions
-// This creates a request handler function that Vercel expects
-module.exports = (req, res) => {
-  // Pass the request to our Express app
+// DUAL EXPORT PATTERN:
+// 1. For Vercel: Export a handler function that will be invoked by Vercel
+// 2. For local dev: The server is already listening locally (started above)
+// This approach ensures compatibility with both environments
+
+// Create a handler function that passes requests to the Express app
+const handler = (req, res) => {
   return server(req, res);
 };
+
+// Make the handler the default export
+// This is compatible with both Express.js expectations and Vercel serverless functions
+module.exports = handler;
