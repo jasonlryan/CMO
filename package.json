@@ -5,7 +5,7 @@
     "test:api": "node backend/tests/api.test.js",
     "test:all": "concurrently \"npm run test\" \"npm run test:api\"",
     "test:chatgpt": "node backend/tests/chatgpt-endpoint.test.js",
-    "kill-ports": "kill-port 3000 5173 || true",
+    "kill-ports": "sudo kill-port 3000 || true",
     "predev": "npm run kill-ports",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "nodemon --config nodemon.json backend/index.js",
