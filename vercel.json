@@ -16,6 +16,16 @@
       "dest": "api/index.js"
     },
     {
+      "src": "/(.*)\\.js$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/$1.js"
+    },
+    {
+      "src": "/(.*)\\.mjs$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/$1.mjs"
+    },
+    {
       "src": "/(.*)",
       "dest": "frontend/$1"
     }
