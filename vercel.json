@@ -10,120 +10,51 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/api/(.*)",
-      "dest": "api/index.js"
+      "source": "/(.*)\\.js",
+      "headers": [
+        { "key": "Content-Type", "value": "application/javascript" }
+      ]
     },
     {
-      "src": "/assets/index-([A-Za-z0-9_]+)\\.js$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/assets/index-$1.js"
+      "source": "/(.*)\\.mjs",
+      "headers": [
+        { "key": "Content-Type", "value": "application/javascript" }
+      ]
     },
     {
-      "src": "/assets/index-([A-Za-z0-9_]+)\\.css$",
-      "headers": { "content-type": "text/css" },
-      "dest": "frontend/assets/index-$1.css"
+      "source": "/(.*)\\.ts",
+      "headers": [
+        { "key": "Content-Type", "value": "application/javascript" }
+      ]
     },
     {
-      "src": "/assets/index\\.es-([A-Za-z0-9_]+)\\.js$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/assets/index.es-$1.js"
+      "source": "/(.*)\\.tsx",
+      "headers": [
+        { "key": "Content-Type", "value": "application/javascript" }
+      ]
     },
     {
-      "src": "/assets/purify\\.es-([A-Za-z0-9_]+)\\.js$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/assets/purify.es-$1.js"
+      "source": "/(.*)\\.css",
+      "headers": [
+        { "key": "Content-Type", "value": "text/css" }
+      ]
     },
     {
-      "src": "/assets/([A-Za-z0-9_]+)\\.([A-Za-z0-9_]+)\\.([A-Za-z0-9_]+)\\.js$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/assets/$1.$2.$3.js"
-    },
-    {
-      "src": "/assets/([^.]+)-([A-Za-z0-9_]+)\\.js$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/assets/$1-$2.js"
-    },
-    {
-      "src": "/assets/(.*)\\.js",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/assets/$1.js"
-    },
-    {
-      "src": "/(.*)\\.js$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/$1.js"
-    },
-    {
-      "src": "/(.*)\\.mjs$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/$1.mjs"
-    },
-    {
-      "src": "/(.*)\\.ts$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/$1.ts"
-    },
-    {
-      "src": "/(.*)\\.tsx$",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/$1.tsx"
-    },
-    {
-      "src": "/(.*)\\.js\\?v=.*",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/$1.js"
-    },
-    {
-      "src": "/(.*)\\.ts\\?v=.*",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/$1.ts"
-    },
-    {
-      "src": "/(.*)\\.tsx\\?v=.*",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "frontend/$1.tsx"
-    },
-    {
-      "src": "/(.*)\\.css$",
-      "headers": { "content-type": "text/css" },
-      "dest": "frontend/$1.css"
-    },
-    {
-      "src": "/(.*)\\.css\\?v=.*",
-      "headers": { "content-type": "text/css" },
-      "dest": "frontend/$1.css"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "frontend/assets/$1"
-    },
-    {
-      "src": "/vite.svg",
-      "dest": "frontend/vite.svg"
-    },
-    {
-      "src": "/(.*)\\.svg$",
-      "headers": { "content-type": "image/svg+xml" },
-      "dest": "frontend/$1.svg"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/$1"
-    },
-    {
-      "src": "/privacy",
-      "dest": "frontend/index.html"
-    },
-    {
-      "src": "/terms",
-      "dest": "frontend/index.html"
-    },
-    {
-      "src": "/contact",
-      "dest": "frontend/index.html"
+      "source": "/(.*)\\.svg",
+      "headers": [
+        { "key": "Content-Type", "value": "image/svg+xml" }
+      ]
     }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/assets/(.*)", "destination": "/frontend/assets/$1" },
+    { "source": "/vite.svg", "destination": "/frontend/vite.svg" },
+    { "source": "/(privacy|terms|contact)", "destination": "/frontend/index.html" },
+    { "source": "/(.*\\.(js|css|svg|png|jpg|jpeg|gif|ico))", "destination": "/frontend/$1" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ],
   "env": {
     "NODE_ENV": "production"
