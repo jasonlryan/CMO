@@ -31,9 +31,29 @@
       "dest": "frontend/$1.mjs"
     },
     {
+      "src": "/(.*)\\.ts$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/$1.ts"
+    },
+    {
+      "src": "/(.*)\\.tsx$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/$1.tsx"
+    },
+    {
       "src": "/(.*)\\.js\\?v=.*",
       "headers": { "content-type": "application/javascript" },
       "dest": "frontend/$1.js"
+    },
+    {
+      "src": "/(.*)\\.ts\\?v=.*",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/$1.ts"
+    },
+    {
+      "src": "/(.*)\\.tsx\\?v=.*",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/$1.tsx"
     },
     {
       "src": "/assets/(.*)",
