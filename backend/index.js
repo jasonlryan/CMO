@@ -194,8 +194,8 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-// Export both Supabase instance and server for different use cases
-module.exports = {
-  supabase,
-  server,
-};
+// Export the server as the default export for Vercel
+module.exports = server;
+
+// Attach Supabase to the server object for access in other files
+server.supabase = supabase;

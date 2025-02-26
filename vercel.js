@@ -4,8 +4,8 @@
 // Load environment variables
 require("dotenv").config();
 
-// Import our server from the backend/index.js combined export
-const { server } = require("./backend/index.js");
+// Import our server directly from backend/index.js (now the default export)
+const server = require("./backend/index.js");
 
 // For Vercel, we need to export the Express app directly
 module.exports = server;
