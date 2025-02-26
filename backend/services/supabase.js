@@ -1,55 +1,69 @@
 const { createClient } = require("@supabase/supabase-js");
+const { debugLog } = require("../config/logging");
+
+if (!process.env.SUPABASE_PROJECT_URL || !process.env.SUPABASE_ANON_KEY) {
+  throw new Error("Missing Supabase environment variables");
+}
 
 const supabase = createClient(
   process.env.SUPABASE_PROJECT_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_ANON_KEY,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+    },
+  }
 );
 
-const supabaseService = {
-  async saveAssessment(data) {
-    const { data: saved, error } = await supabase
-      .from("assessments")
-      .insert(data)
-      .select()
-      .single();
+// Initialize database schema if needed
+async function initializeSchema() {
+  debugLog("Checking Supabase schema...");
 
+  // Verify assessments table exists
+  const { error: assessmentsError } = await supabase
+    .from("assessments")
+    .select("id")
+    .limit(1);
+
+  if (assessmentsError?.code === "42P01") {
+    // Table doesn't exist
+    debugLog("Creating assessments table...");
+    const { error } = await supabase.rpc("init_assessments_table");
     if (error) throw error;
-    return saved;
-  },
+  }
 
-  async getProfile(id) {
-    const { data, error } = await supabase
-      .from("cmo_profiles")
-      .select("*")
-      .eq("id", id)
-      .single();
+  // Verify profiles table exists
+  const { error: profilesError } = await supabase
+    .from("profiles")
+    .select("id")
+    .limit(1);
 
+  if (profilesError?.code === "42P01") {
+    // Table doesn't exist
+    debugLog("Creating profiles table...");
+    const { error } = await supabase.rpc("init_profiles_table");
     if (error) throw error;
-    return data;
-  },
+  }
 
-  async createProfile(profile) {
-    const { data, error } = await supabase
-      .from("cmo_profiles")
-      .insert([profile])
-      .select()
-      .single();
+  // Verify reports table exists
+  const { error: reportsError } = await supabase
+    .from("reports")
+    .select("id")
+    .limit(1);
 
+  if (reportsError?.code === "42P01") {
+    // Table doesn't exist
+    debugLog("Creating reports table...");
+    const { error } = await supabase.rpc("init_reports_table");
     if (error) throw error;
-    return data;
-  },
+  }
 
-  async updateProfile(id, updates) {
-    const { data, error } = await supabase
-      .from("cmo_profiles")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+  debugLog("Schema verification complete");
+}
 
-    if (error) throw error;
-    return data;
-  },
+// Export initialized client and helper functions
+module.exports = {
+  supabase,
+  initializeSchema,
 };
-
-module.exports = { supabaseService };

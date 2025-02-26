@@ -1,0 +1,114 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CMO Assessment API",
+    "description": "API for analyzing CMO interview transcripts",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001"
+    }
+  ],
+  "paths": {
+    "/api/chatgpt/assessment": {
+      "post": {
+        "summary": "Analyze a CMO interview transcript",
+        "operationId": "analyzeCMOTranscript",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transcript": {
+                    "type": "string",
+                    "description": "The interview transcript text"
+                  }
+                },
+                "required": ["transcript"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful analysis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "Profile data from the assessment"
+                    },
+                    "scores": {
+                      "type": "object",
+                      "description": "Skill scores from the assessment"
+                    },
+                    "reports": {
+                      "type": "object",
+                      "description": "Generated reports from the assessment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_REQUEST"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Missing transcript in request body"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "example": "ASSESSMENT_FAILED"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Assessment failed"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} 
