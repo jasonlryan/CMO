@@ -1,6 +1,12 @@
 {
   "version": 2,
+  "trailingSlash": false,
+  "cleanUrls": true,
   "builds": [
+    {
+      "src": "vercel.js",
+      "use": "@vercel/node"
+    },
     {
       "src": "api/index.js",
       "use": "@vercel/node"
@@ -10,51 +16,52 @@
       "use": "@vercel/static"
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/(.*)\\.js",
-      "headers": [
-        { "key": "Content-Type", "value": "application/javascript" }
-      ]
+      "src": "/api/(.*)",
+      "dest": "api/index.js"
     },
     {
-      "source": "/(.*)\\.mjs",
-      "headers": [
-        { "key": "Content-Type", "value": "application/javascript" }
-      ]
+      "src": "/(.*)",
+      "dest": "vercel.js"
     },
     {
-      "source": "/(.*)\\.ts",
-      "headers": [
-        { "key": "Content-Type", "value": "application/javascript" }
-      ]
+      "src": "/assets/.*\\.(js|mjs|jsx|ts|tsx)$",
+      "headers": { "Content-Type": "application/javascript" },
+      "dest": "frontend/$1"
     },
     {
-      "source": "/(.*)\\.tsx",
-      "headers": [
-        { "key": "Content-Type", "value": "application/javascript" }
-      ]
+      "src": "/assets/.*\\.(css)$",
+      "headers": { "Content-Type": "text/css" },
+      "dest": "frontend/$1"
     },
     {
-      "source": "/(.*)\\.css",
-      "headers": [
-        { "key": "Content-Type", "value": "text/css" }
-      ]
+      "src": "/(.*\\.(js|mjs|jsx|ts|tsx))$",
+      "headers": { "Content-Type": "application/javascript" },
+      "dest": "frontend/$1"
     },
     {
-      "source": "/(.*)\\.svg",
-      "headers": [
-        { "key": "Content-Type", "value": "image/svg+xml" }
-      ]
+      "src": "/(.*\\.css)$",
+      "headers": { "Content-Type": "text/css" },
+      "dest": "frontend/$1"
+    },
+    {
+      "src": "/(.*\\.svg)$",
+      "headers": { "Content-Type": "image/svg+xml" },
+      "dest": "frontend/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "frontend/assets/$1"
+    },
+    {
+      "src": "/(privacy|terms|contact)",
+      "dest": "frontend/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/index.html"
     }
-  ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/assets/(.*)", "destination": "/frontend/assets/$1" },
-    { "source": "/vite.svg", "destination": "/frontend/vite.svg" },
-    { "source": "/(privacy|terms|contact)", "destination": "/frontend/index.html" },
-    { "source": "/(.*\\.(js|css|svg|png|jpg|jpeg|gif|ico))", "destination": "/frontend/$1" },
-    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ],
   "env": {
     "NODE_ENV": "production"
