@@ -1,15 +1,26 @@
 const express = require("express");
 const cors = require("cors");
-const { supabase, initializeSchema } = require("../services/supabase");
+const {
+  supabase,
+  initializeSchema,
+  getSupabaseStatus,
+} = require("../services/supabase");
 const { openaiService } = require("../services/openai");
 const { handleAssessment } = require("../services/assessment");
 const { debugLog } = require("../config/logging");
 
 // Initialize Supabase schema
-initializeSchema().catch((error) => {
-  console.error("Failed to initialize schema:", error);
-  process.exit(1);
-});
+if (supabase) {
+  initializeSchema().catch((error) => {
+    console.error("Failed to initialize schema:", error);
+    // Don't exit in serverless environment
+    if (process.env.NODE_ENV !== "production") {
+      process.exit(1);
+    }
+  });
+} else {
+  console.warn("Skipping schema initialization: Supabase client not available");
+}
 
 const app = express();
 
@@ -88,7 +99,17 @@ app.get("/api/profiles/:id", async (req, res) => {
 
 // Add health check endpoint
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
+  // Get Supabase connection status
+  const supabaseStatus = getSupabaseStatus();
+
+  res.status(200).json({
+    status: "ok",
+    supabase: supabaseStatus,
+    environment: {
+      node_env: process.env.NODE_ENV || "development",
+      is_vercel: !!process.env.VERCEL,
+    },
+  });
 });
 
 app.get("/api/assessments", async (req, res) => {
