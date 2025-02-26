@@ -4,7 +4,7 @@
 require("dotenv").config();
 
 const { createClient } = require("@supabase/supabase-js");
-const { server } = require("./api/server.js");
+const server = require("./api/server.js");
 const express = require("express");
 const { debugLog } = require("./config/logging");
 const { exec } = require("child_process");
@@ -194,8 +194,8 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-// Export the server as the default export for Vercel
-module.exports = server;
-
 // Attach Supabase to the server object for access in other files
 server.supabase = supabase;
+
+// Export the Express app directly for Vercel
+module.exports = server;

@@ -199,4 +199,5 @@ if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
 
 // ... other routes ...
 
-module.exports = { server: app };
+// Export the Express app directly
+module.exports = app;
