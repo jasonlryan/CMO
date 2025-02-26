@@ -1,67 +1,13 @@
 {
   "version": 2,
-  "trailingSlash": false,
-  "cleanUrls": true,
   "builds": [
     {
       "src": "vercel.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "frontend/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "vercel.js"
-    },
-    {
-      "src": "/assets/.*\\.(js|mjs|jsx|ts|tsx)$",
-      "headers": { "Content-Type": "application/javascript" },
-      "dest": "frontend/$1"
-    },
-    {
-      "src": "/assets/.*\\.(css)$",
-      "headers": { "Content-Type": "text/css" },
-      "dest": "frontend/$1"
-    },
-    {
-      "src": "/(.*\\.(js|mjs|jsx|ts|tsx))$",
-      "headers": { "Content-Type": "application/javascript" },
-      "dest": "frontend/$1"
-    },
-    {
-      "src": "/(.*\\.css)$",
-      "headers": { "Content-Type": "text/css" },
-      "dest": "frontend/$1"
-    },
-    {
-      "src": "/(.*\\.svg)$",
-      "headers": { "Content-Type": "image/svg+xml" },
-      "dest": "frontend/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "frontend/assets/$1"
-    },
-    {
-      "src": "/(privacy|terms|contact)",
-      "dest": "frontend/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/index.html"
-    }
+    { "src": "/(.*)", "dest": "/vercel.js" }
   ],
   "env": {
     "NODE_ENV": "production"
