@@ -16,6 +16,11 @@
       "dest": "api/index.js"
     },
     {
+      "src": "/assets/(.*)\\.js",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/assets/$1.js"
+    },
+    {
       "src": "/(.*)\\.js$",
       "headers": { "content-type": "application/javascript" },
       "dest": "frontend/$1.js"
@@ -24,6 +29,24 @@
       "src": "/(.*)\\.mjs$",
       "headers": { "content-type": "application/javascript" },
       "dest": "frontend/$1.mjs"
+    },
+    {
+      "src": "/(.*)\\.js\\?v=.*",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/$1.js"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "frontend/assets/$1"
+    },
+    {
+      "src": "/vite.svg",
+      "dest": "frontend/vite.svg"
+    },
+    {
+      "src": "/(.*)\\.svg$",
+      "headers": { "content-type": "image/svg+xml" },
+      "dest": "frontend/$1.svg"
     },
     {
       "src": "/(.*)",
