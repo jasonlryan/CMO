@@ -16,6 +16,31 @@
       "dest": "api/index.js"
     },
     {
+      "src": "/assets/index-([A-Za-z0-9_]+)\\.js$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/assets/index-$1.js"
+    },
+    {
+      "src": "/assets/index\\.es-([A-Za-z0-9_]+)\\.js$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/assets/index.es-$1.js"
+    },
+    {
+      "src": "/assets/purify\\.es-([A-Za-z0-9_]+)\\.js$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/assets/purify.es-$1.js"
+    },
+    {
+      "src": "/assets/([A-Za-z0-9_]+)\\.([A-Za-z0-9_]+)\\.([A-Za-z0-9_]+)\\.js$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/assets/$1.$2.$3.js"
+    },
+    {
+      "src": "/assets/([^.]+)-([A-Za-z0-9_]+)\\.js$",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "frontend/assets/$1-$2.js"
+    },
+    {
       "src": "/assets/(.*)\\.js",
       "headers": { "content-type": "application/javascript" },
       "dest": "frontend/assets/$1.js"
