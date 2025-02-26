@@ -66,6 +66,29 @@ npm run toggle-debug
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3000
 
+## ChatGPT Integration
+
+The CMO Assessment Tool includes a ChatGPT integration for analyzing interview transcripts:
+
+1. **Enable the ChatGPT endpoint** in `.env`:
+
+   ```
+   ENABLE_CHATGPT_ENDPOINT=true
+   OPENAI_API_KEY=your_api_key_here
+   ```
+
+2. **Test the endpoint** with the sample script:
+
+   ```bash
+   # Start the backend server
+   npm run dev:backend
+
+   # In another terminal, run the test script
+   node backend/tests/chatgpt-endpoint.test.js
+   ```
+
+3. For detailed setup instructions, see `docs/chatgpt_setup_instructions.md`
+
 For complete documentation, see:
 
 - `docs/MASTER_PLAN.md`

@@ -4,6 +4,7 @@
     "test": "node backend/tests/test.js",
     "test:api": "node backend/tests/api.test.js",
     "test:all": "concurrently \"npm run test\" \"npm run test:api\"",
+    "test:chatgpt": "node backend/tests/chatgpt-endpoint.test.js",
     "kill-ports": "kill-port 3000 5173 || true",
     "predev": "npm run kill-ports",
     "dev:frontend": "cd frontend && npm run dev",
@@ -33,6 +34,7 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-import": "^2.31.0",
     "kill-port": "^2.0.1",
+    "localtunnel": "^2.0.2",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
