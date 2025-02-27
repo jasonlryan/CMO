@@ -1,0 +1,21 @@
+{
+  "name": "cmo-assessment-api",
+  "version": "1.0.0",
+  "description": "API-only version of the CMO Assessment Tool for ChatGPT integration",
+  "main": "render-api.js",
+  "scripts": {
+    "start": "node render-api.js",
+    "test": "node backend/tests/chatgpt-endpoint.test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.21.2",
+    "openai": "^4.0.0"
+  }
+} 
