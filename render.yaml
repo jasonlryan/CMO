@@ -1,10 +1,10 @@
 services:
-  # Backend API service
+  # API-only service for ChatGPT integration
   - type: web
     name: cmo-assessment-api
     runtime: node
     buildCommand: npm install
-    startCommand: npm run start:render
+    startCommand: node render-api.js
     envVars:
       - key: NODE_ENV
         value: production
