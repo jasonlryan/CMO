@@ -11,7 +11,8 @@
     "dev:backend": "nodemon --config nodemon.json backend/index.js",
     "dev": "concurrently --restart-tries 3 --restart-after 1000 -k \"npm run dev:backend\" \"npm run dev:frontend\"",
     "start:backend": "node backend/index.js",
-    "build": "echo \"=== STARTING BUILD PROCESS ===\" && npm install && cd frontend && echo \"=== INSTALLING FRONTEND DEPENDENCIES ===\" && npm install && echo \"=== BUILDING FRONTEND WITHOUT TYPESCRIPT CHECKS ===\" && npm run build || (echo \"=== BUILD FAILED, SHOWING ERROR DETAILS ===\" && ls -la && echo \"=== CURRENT DIRECTORY: $(pwd) ===\" && exit 1) && echo \"=== BUILD COMPLETE, CHECKING DIST FOLDER ===\" && ls -la dist && echo \"=== CONTENTS OF DIST FOLDER ===\" && ls -la dist/* || echo \"=== BUILD FAILED ===\" && exit 1"
+    "build": "echo \"=== STARTING BUILD PROCESS ===\" && npm install && cd frontend && echo \"=== INSTALLING FRONTEND DEPENDENCIES ===\" && npm install && echo \"=== BUILDING FRONTEND WITHOUT TYPESCRIPT CHECKS ===\" && npm run build || (echo \"=== BUILD FAILED, SHOWING ERROR DETAILS ===\" && ls -la && echo \"=== CURRENT DIRECTORY: $(pwd) ===\" && exit 1) && echo \"=== BUILD COMPLETE, CHECKING DIST FOLDER ===\" && ls -la dist && echo \"=== CONTENTS OF DIST FOLDER ===\" && ls -la dist/* || echo \"=== BUILD FAILED ===\" && exit 1",
+    "build:local": "npm run build && NODE_ENV=production node vercel.js"
   },
   "engines": {
     "node": ">=18.0.0"
