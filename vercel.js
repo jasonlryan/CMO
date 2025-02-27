@@ -14,9 +14,30 @@ const serverHandler = require("./backend/index.js");
 const app = express();
 
 // Debug logging to help troubleshoot
-console.log("Starting custom server in vercel.js");
+console.log("====== VERCEL SERVER INITIALIZATION ======");
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("Current directory:", __dirname);
+console.log("Current working directory:", process.cwd());
+console.log(
+  "Files in current directory:",
+  fs.readdirSync(__dirname).join(", ")
+);
+
+// Try to find frontend directory
+try {
+  console.log("Checking for frontend directory:");
+  if (fs.existsSync(path.join(__dirname, "frontend"))) {
+    console.log("frontend directory exists at root level");
+    console.log(
+      "Contents:",
+      fs.readdirSync(path.join(__dirname, "frontend")).join(", ")
+    );
+  } else {
+    console.log("No frontend directory at root level");
+  }
+} catch (err) {
+  console.error("Error checking frontend directory:", err.message);
+}
 
 // Determine the correct path to the frontend dist directory
 // In Vercel, we need to use a specific path structure
@@ -24,6 +45,7 @@ let distPath;
 if (process.env.NODE_ENV === "production") {
   // Vercel production environment uses a different directory structure
   distPath = path.join(__dirname, "frontend", "dist");
+  console.log(`Checking primary dist path: ${distPath}`);
 
   // Check if the path exists, if not, try to find the correct path
   if (!fs.existsSync(distPath)) {
@@ -38,13 +60,26 @@ if (process.env.NODE_ENV === "production") {
       "/var/task/dist",
     ];
 
+    console.log("Checking potential dist paths:");
     for (const potentialPath of potentialPaths) {
       console.log(`Checking path: ${potentialPath}`);
-      if (fs.existsSync(potentialPath)) {
-        console.log(`Found valid path: ${potentialPath}`);
-        distPath = potentialPath;
-        break;
+      try {
+        if (fs.existsSync(potentialPath)) {
+          console.log(`Found valid path: ${potentialPath}`);
+          console.log(`Contents: ${fs.readdirSync(potentialPath).join(", ")}`);
+          distPath = potentialPath;
+          break;
+        }
+      } catch (err) {
+        console.error(`Error checking path ${potentialPath}:`, err.message);
       }
+    }
+  } else {
+    console.log(`Path ${distPath} exists!`);
+    try {
+      console.log(`Contents: ${fs.readdirSync(distPath).join(", ")}`);
+    } catch (err) {
+      console.error(`Error reading ${distPath}:`, err.message);
     }
   }
 } else {
@@ -78,6 +113,7 @@ if (fs.existsSync(distPath)) {
   const indexPath = path.join(distPath, "index.html");
   if (fs.existsSync(indexPath)) {
     console.log(`index.html found at: ${indexPath}`);
+    console.log(`index.html size: ${fs.statSync(indexPath).size} bytes`);
 
     // For any other request, serve the index.html to support client-side routing
     app.get("*", (req, res) => {
@@ -87,13 +123,39 @@ if (fs.existsSync(distPath)) {
   } else {
     console.error(`index.html not found at: ${indexPath}`);
     app.get("*", (req, res) => {
-      res.status(404).send(`File not found. Checked path: ${indexPath}`);
+      res
+        .status(404)
+        .send(
+          `File not found. Checked path: ${indexPath}. Available files in ${distPath}: ${fs
+            .readdirSync(distPath)
+            .join(", ")}`
+        );
     });
   }
 } else {
   console.error(`Dist directory not found at: ${distPath}`);
+  // List all directories to help debug
+  try {
+    console.log(
+      "Root directory contents:",
+      fs.readdirSync(__dirname).join(", ")
+    );
+    if (fs.existsSync(path.join(__dirname, "frontend"))) {
+      console.log(
+        "Frontend directory contents:",
+        fs.readdirSync(path.join(__dirname, "frontend")).join(", ")
+      );
+    }
+  } catch (err) {
+    console.error("Error listing directories:", err.message);
+  }
+
   app.get("*", (req, res) => {
-    res.status(404).send(`Frontend build not found. Checked path: ${distPath}`);
+    res
+      .status(404)
+      .send(
+        `Frontend build not found. Checked path: ${distPath}. This is likely because the build process did not complete successfully. Please check the build logs.`
+      );
   });
 }
 
