@@ -30,7 +30,8 @@ yarn-error.log*
 .DS_Store
 
 # Backend data
-frontend/
+frontend/node_modules/
+frontend/dist/
 backend/data/
 backend/services/backups/
 backend/prompts/backups/
