@@ -1,0 +1,18 @@
+services:
+  # Backend API service
+  - type: web
+    name: cmo-assessment-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm run start:render
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ENABLE_CHATGPT_ENDPOINT
+        value: "true"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SUPABASE_PROJECT_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false 
