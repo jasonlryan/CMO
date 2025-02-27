@@ -20,20 +20,28 @@ console.log("Current directory:", __dirname);
 console.log("Current working directory:", process.cwd());
 console.log(
   "Files in current directory:",
-  fs.readdirSync(__dirname).join(", ")
+  fs.readdirSync(process.cwd()).join(", ")
 );
+console.log("Files in __dirname:", fs.readdirSync(__dirname).join(", "));
 
 // Try to find frontend directory
 try {
   console.log("Checking for frontend directory:");
-  if (fs.existsSync(path.join(__dirname, "frontend"))) {
-    console.log("frontend directory exists at root level");
-    console.log(
-      "Contents:",
-      fs.readdirSync(path.join(__dirname, "frontend")).join(", ")
-    );
+  const frontendPath = path.join(process.cwd(), "frontend");
+  if (fs.existsSync(frontendPath)) {
+    console.log("frontend directory exists at:", frontendPath);
+    console.log("Contents:", fs.readdirSync(frontendPath).join(", "));
+
+    // Check if dist exists in frontend
+    const distPathInFrontend = path.join(frontendPath, "dist");
+    if (fs.existsSync(distPathInFrontend)) {
+      console.log("dist directory exists in frontend!");
+      console.log("Contents:", fs.readdirSync(distPathInFrontend).join(", "));
+    } else {
+      console.log("No dist directory in frontend");
+    }
   } else {
-    console.log("No frontend directory at root level");
+    console.log("No frontend directory at:", frontendPath);
   }
 } catch (err) {
   console.error("Error checking frontend directory:", err.message);
@@ -42,49 +50,99 @@ try {
 // Determine the correct path to the frontend dist directory
 // In Vercel, we need to use a specific path structure
 let distPath;
-if (process.env.NODE_ENV === "production") {
-  // Vercel production environment uses a different directory structure
-  distPath = path.join(__dirname, "frontend", "dist");
-  console.log(`Checking primary dist path: ${distPath}`);
+const possiblePaths = [
+  path.join(process.cwd(), "frontend", "dist"),
+  path.join(__dirname, "frontend", "dist"),
+  path.join(process.cwd(), "dist"),
+  path.join(__dirname, "dist"),
+  "/var/task/frontend/dist",
+  "/var/task/dist",
+];
 
-  // Check if the path exists, if not, try to find the correct path
-  if (!fs.existsSync(distPath)) {
-    console.log(`Path ${distPath} does not exist, trying alternate paths`);
+console.log("Checking ALL possible dist paths:");
+let foundValidPath = false;
 
-    // List of potential paths to try
-    const potentialPaths = [
-      path.join(__dirname, "dist"),
-      path.join(process.cwd(), "frontend", "dist"),
-      path.join(process.cwd(), "dist"),
-      "/var/task/frontend/dist",
-      "/var/task/dist",
-    ];
-
-    console.log("Checking potential dist paths:");
-    for (const potentialPath of potentialPaths) {
-      console.log(`Checking path: ${potentialPath}`);
+for (const pathToCheck of possiblePaths) {
+  console.log(`Checking path: ${pathToCheck}`);
+  try {
+    if (fs.existsSync(pathToCheck)) {
+      console.log(`Found valid path: ${pathToCheck}`);
       try {
-        if (fs.existsSync(potentialPath)) {
-          console.log(`Found valid path: ${potentialPath}`);
-          console.log(`Contents: ${fs.readdirSync(potentialPath).join(", ")}`);
-          distPath = potentialPath;
+        const files = fs.readdirSync(pathToCheck);
+        console.log(`Contents: ${files.join(", ")}`);
+        if (files.includes("index.html")) {
+          console.log(`✅ index.html found in ${pathToCheck}`);
+          distPath = pathToCheck;
+          foundValidPath = true;
           break;
+        } else {
+          console.log(`❌ No index.html in ${pathToCheck}`);
         }
       } catch (err) {
-        console.error(`Error checking path ${potentialPath}:`, err.message);
+        console.error(`Error reading directory ${pathToCheck}:`, err.message);
       }
+    } else {
+      console.log(`Path ${pathToCheck} does not exist`);
     }
-  } else {
-    console.log(`Path ${distPath} exists!`);
-    try {
-      console.log(`Contents: ${fs.readdirSync(distPath).join(", ")}`);
-    } catch (err) {
-      console.error(`Error reading ${distPath}:`, err.message);
-    }
+  } catch (err) {
+    console.error(`Error checking path ${pathToCheck}:`, err.message);
   }
-} else {
-  // Local development environment
-  distPath = path.join(__dirname, "frontend", "dist");
+}
+
+if (!foundValidPath) {
+  console.log("No valid dist path found with index.html");
+
+  // Create a minimal fallback file
+  try {
+    console.log("Creating fallback frontend/dist directory");
+    const fallbackPath = path.join(process.cwd(), "frontend", "dist");
+
+    // Create directories if they don't exist
+    if (!fs.existsSync(path.join(process.cwd(), "frontend"))) {
+      fs.mkdirSync(path.join(process.cwd(), "frontend"), { recursive: true });
+    }
+
+    if (!fs.existsSync(fallbackPath)) {
+      fs.mkdirSync(fallbackPath, { recursive: true });
+    }
+
+    // Create a minimal index.html
+    const indexPath = path.join(fallbackPath, "index.html");
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CMO Assessment Tool - Build Error</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+          .error { color: #e74c3c; background: #fdf5f5; padding: 1rem; border-radius: 4px; }
+          code { background: #f8f8f8; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        </style>
+      </head>
+      <body>
+        <h1>CMO Assessment Tool</h1>
+        <div class="error">
+          <h2>Build Error</h2>
+          <p>The frontend build files could not be found. This usually indicates that the build process failed or did not run.</p>
+          <p>Please check the Vercel build logs for more information.</p>
+        </div>
+        <h3>Debugging Information:</h3>
+        <pre><code>Current directory: ${process.cwd()}
+Node environment: ${process.env.NODE_ENV}
+Checked paths: ${possiblePaths.join(", ")}
+        </code></pre>
+      </body>
+      </html>
+    `;
+
+    fs.writeFileSync(indexPath, fallbackHtml);
+    console.log(`Created fallback index.html at ${indexPath}`);
+    distPath = fallbackPath;
+  } catch (err) {
+    console.error("Error creating fallback:", err.message);
+  }
 }
 
 console.log(`Using dist path: ${distPath}`);
@@ -138,12 +196,12 @@ if (fs.existsSync(distPath)) {
   try {
     console.log(
       "Root directory contents:",
-      fs.readdirSync(__dirname).join(", ")
+      fs.readdirSync(process.cwd()).join(", ")
     );
-    if (fs.existsSync(path.join(__dirname, "frontend"))) {
+    if (fs.existsSync(path.join(process.cwd(), "frontend"))) {
       console.log(
         "Frontend directory contents:",
-        fs.readdirSync(path.join(__dirname, "frontend")).join(", ")
+        fs.readdirSync(path.join(process.cwd(), "frontend")).join(", ")
       );
     }
   } catch (err) {
