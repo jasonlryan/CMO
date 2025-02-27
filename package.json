@@ -1,6 +1,7 @@
 {
   "scripts": {
     "start": "node backend/index.js",
+    "start:render": "node start.js",
     "test": "node backend/tests/test.js",
     "test:api": "node backend/tests/api.test.js",
     "test:all": "concurrently \"npm run test\" \"npm run test:api\"",
