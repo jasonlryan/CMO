@@ -9,7 +9,7 @@
   "routes": [
     { "src": "/(.*)", "dest": "/vercel.js" }
   ],
-  "buildCommand": "npm run build",
+  "buildCommand": "cd frontend && npm install && npm run build && ls -la dist",
   "env": {
     "NODE_ENV": "production"
   }
