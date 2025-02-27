@@ -24,6 +24,7 @@ if (supabase) {
 
 const app = express();
 
+// General CORS for UI API - permissive
 app.use(cors());
 app.use(express.json());
 
@@ -135,61 +136,76 @@ app.get("/api/assessments", async (req, res) => {
 
 // ChatGPT Integration Endpoint (can be disabled with ENABLE_CHATGPT_ENDPOINT=false)
 if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
-  app.post("/api/chatgpt/assessment", async (req, res) => {
-    try {
-      console.log("[ChatGPT Endpoint] Assessment request received");
-      debugLog("[ChatGPT] Request data:", {
-        bodyType: typeof req.body,
-        has_transcript: !!req.body?.transcript,
-        sample: req.body?.transcript
-          ? req.body.transcript.substring(0, 100)
-          : "none",
-      });
+  // Special CORS configuration just for the ChatGPT endpoint
+  const chatGptCorsOptions = {
+    origin: ["https://chat.openai.com", "https://chatgpt.com"],
+    methods: ["POST"],
+    allowedHeaders: ["Content-Type"],
+    credentials: true,
+    maxAge: 86400, // 24 hours
+  };
 
-      // Validate request (same validation as regular endpoint)
-      if (!req.body || !req.body.transcript) {
-        console.log("[ChatGPT Endpoint] Invalid request - missing transcript");
-        return res.status(400).json({
-          error: {
-            code: "INVALID_REQUEST",
-            message: "Missing transcript in request body",
-          },
+  app.post(
+    "/api/chatgpt/assessment",
+    cors(chatGptCorsOptions),
+    async (req, res) => {
+      try {
+        console.log("[ChatGPT Endpoint] Assessment request received");
+        debugLog("[ChatGPT] Request data:", {
+          bodyType: typeof req.body,
+          has_transcript: !!req.body?.transcript,
+          sample: req.body?.transcript
+            ? req.body.transcript.substring(0, 100)
+            : "none",
         });
-      }
 
-      // Process assessment using the same function as the regular endpoint
-      const result = await handleAssessment(String(req.body.transcript));
+        // Validate request (same validation as regular endpoint)
+        if (!req.body || !req.body.transcript) {
+          console.log(
+            "[ChatGPT Endpoint] Invalid request - missing transcript"
+          );
+          return res.status(400).json({
+            error: {
+              code: "INVALID_REQUEST",
+              message: "Missing transcript in request body",
+            },
+          });
+        }
 
-      // Validate result
-      if (!result || !result.profile) {
-        console.log(
-          "[ChatGPT Endpoint] Processing failed - no result or profile"
-        );
+        // Process assessment using the same function as the regular endpoint
+        const result = await handleAssessment(String(req.body.transcript));
+
+        // Validate result
+        if (!result || !result.profile) {
+          console.log(
+            "[ChatGPT Endpoint] Processing failed - no result or profile"
+          );
+          return res.status(500).json({
+            error: {
+              code: "PROCESSING_FAILED",
+              message: "Failed to process assessment",
+            },
+          });
+        }
+
+        console.log("[ChatGPT Endpoint] Assessment successful");
+        // Return successful response (same format as regular endpoint)
+        return res.json({
+          data: result.profile,
+          scores: result.scores,
+          reports: result.reports,
+        });
+      } catch (error) {
+        console.error("[ChatGPT Endpoint] Assessment failed:", error);
         return res.status(500).json({
           error: {
-            code: "PROCESSING_FAILED",
-            message: "Failed to process assessment",
+            code: "ASSESSMENT_FAILED",
+            message: error.message || "Assessment failed",
           },
         });
       }
-
-      console.log("[ChatGPT Endpoint] Assessment successful");
-      // Return successful response (same format as regular endpoint)
-      return res.json({
-        data: result.profile,
-        scores: result.scores,
-        reports: result.reports,
-      });
-    } catch (error) {
-      console.error("[ChatGPT Endpoint] Assessment failed:", error);
-      return res.status(500).json({
-        error: {
-          code: "ASSESSMENT_FAILED",
-          message: error.message || "Assessment failed",
-        },
-      });
     }
-  });
+  );
   console.log(
     "✓ ChatGPT integration endpoint enabled at /api/chatgpt/assessment"
   );
