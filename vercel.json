@@ -6,6 +6,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -16,11 +20,11 @@
   "routes": [
     {
       "src": "/api/chatgpt/assessment",
-      "dest": "/vercel.js",
+      "dest": "/api/chatgpt/endpoint.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept"
       }
     },
     {
