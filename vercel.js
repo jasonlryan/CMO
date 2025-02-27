@@ -167,6 +167,28 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add additional debugging middleware for API requests
+app.use("/api", (req, res, next) => {
+  console.log(
+    `[${new Date().toISOString()}] API Request: ${req.method} ${req.url}`
+  );
+  console.log("Headers:", JSON.stringify(req.headers));
+  if (req.url.includes("/chatgpt")) {
+    console.log("ChatGPT endpoint requested");
+
+    // Add CORS headers for ChatGPT endpoint
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    // Handle preflight OPTIONS request
+    if (req.method === "OPTIONS") {
+      return res.status(200).end();
+    }
+  }
+  next();
+});
+
 // Set up API routes - all /api/* requests go to the backend handler
 app.use("/api", serverHandler);
 
