@@ -6,7 +6,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "api/**/*.js",
+      "src": "api/chatgpt.js",
       "use": "@vercel/node"
     },
     {
@@ -20,11 +20,11 @@
   "routes": [
     {
       "src": "/api/chatgpt/assessment",
-      "dest": "/api/chatgpt/endpoint.js",
+      "dest": "/api/chatgpt.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept"
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
     },
     {
