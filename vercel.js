@@ -57,9 +57,16 @@ const possiblePaths = [
   path.join(__dirname, "dist"),
   "/var/task/frontend/dist",
   "/var/task/dist",
-];
+  path.join(process.cwd(), "..", "frontend", "dist"), // Try parent directory
+  path.join(__dirname, "..", "frontend", "dist"), // Try parent directory
+  process.env.VERCEL_OUTPUT_DIR
+    ? path.join(process.env.VERCEL_OUTPUT_DIR)
+    : null, // Check Vercel output dir if defined
+].filter(Boolean); // Remove null entries
 
 console.log("Checking ALL possible dist paths:");
+console.log("VERCEL_OUTPUT_DIR:", process.env.VERCEL_OUTPUT_DIR);
+console.log("BUILD_OUTPUT_DIR:", process.env.BUILD_OUTPUT_DIR);
 let foundValidPath = false;
 
 for (const pathToCheck of possiblePaths) {
