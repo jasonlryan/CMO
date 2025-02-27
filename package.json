@@ -10,7 +10,8 @@
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "nodemon --config nodemon.json backend/index.js",
     "dev": "concurrently --restart-tries 3 --restart-after 1000 -k \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "start:backend": "node backend/index.js"
+    "start:backend": "node backend/index.js",
+    "build": "cd frontend && npm install && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
