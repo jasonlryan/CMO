@@ -138,12 +138,14 @@ app.get("/api/assessments", async (req, res) => {
 if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
   // Special CORS configuration just for the ChatGPT endpoint
   const chatGptCorsOptions = {
-    origin: ["https://chat.openai.com", "https://chatgpt.com"],
-    methods: ["POST"],
-    allowedHeaders: ["Content-Type"],
+    origin: ["https://chat.openai.com", "https://chatgpt.com", "*"],
+    methods: ["POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
     maxAge: 86400, // 24 hours
   };
+
+  app.options("/api/chatgpt/assessment", cors(chatGptCorsOptions));
 
   app.post(
     "/api/chatgpt/assessment",
