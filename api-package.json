@@ -2,9 +2,9 @@
   "name": "cmo-assessment-api",
   "version": "1.0.0",
   "description": "API-only version of the CMO Assessment Tool for ChatGPT integration",
-  "main": "render-api.js",
+  "main": "start.js",
   "scripts": {
-    "start": "node render-api.js",
+    "start": "node start.js",
     "test": "node backend/tests/chatgpt-endpoint.test.js"
   },
   "engines": {
