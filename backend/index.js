@@ -43,10 +43,10 @@ try {
   process.exit(1);
 }
 
-// Only start the server in development mode
+// Only start the server in development mode or on Render
 // In production (Vercel), we'll export the handler function
-if (process.env.NODE_ENV !== "production") {
-  const PORT = 3000; // Always use port 3000
+if (process.env.NODE_ENV !== "production" || process.env.RENDER) {
+  const PORT = process.env.PORT || 3000; // Use PORT from environment or default to 3000
   let serverInstance = null;
 
   // Function to wait for a specified time
