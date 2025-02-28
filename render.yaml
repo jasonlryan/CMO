@@ -4,7 +4,7 @@ services:
     name: cmo-assessment-api
     runtime: node
     buildCommand: npm install
-    startCommand: node render-api.js
+    startCommand: node start.js
     envVars:
       - key: NODE_ENV
         value: production
