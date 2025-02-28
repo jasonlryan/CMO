@@ -1,41 +1,85 @@
-# Dependencies
+# Frontend - exclude everything
+frontend/**/*
+**/vite.config.*
+**/*.tsx
+**/*.ts
+**/*.jsx
+**/*.css
+**/tailwind.config.*
+**/postcss.config.*
+**/tsconfig*
+**/index.html
+
+# Keep only backend JS files
+!backend/**/*.js
+!render-api.js
+
+# Core files to keep
+!backend/prompts/transcriptAnalysis.md
+!backend/prompts/promptLoader.js
+!backend/services/assessment.js
+!backend/services/openai.js
+!backend/templates/cmoProfile.js
+!render.yaml
+!package.json
+
+# Exclude test and documentation
+test*/
+*.test.js
+docs/
+*.md
+!backend/prompts/transcriptAnalysis.md
+
+# Exclude unnecessary backend components
+backend/data/
+backend/tests/
+backend/config/
+backend/api/
+backend/services/backups/
+backend/services/startup.js
+backend/services/scoring.js
+backend/services/supabase.js
+backend/prompts/backups/
+backend/templates/backups/
+backend/templates/reports.js
+
+# Exclude Vercel specific files
+vercel*
+api/
+
+# Dependencies and environment
 node_modules/
 .pnp
 .pnp.js
+.env
+.env.*
+!.env.example
 
-# Testing
-coverage/
-
-# Production
+# Build and cache
 dist/
 build/
-
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+coverage/
+.cache/
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
-# Editor directories and files
+# Editor and system files
 .vscode/
 .idea/
 *.swp
 *.swo
 .DS_Store
 
-# Backend data
-frontend/node_modules/
-frontend/dist/
-backend/data/
-backend/services/backups/
-backend/prompts/backups/
-backend/templates/backups/
+# Misc
 data/
 speech.txt
+*.bak
+*.backup
+*backup*
+fix404.md
+chatgpt-openapi.json
 
