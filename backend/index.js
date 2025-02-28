@@ -30,17 +30,23 @@ if (missingVars.length > 0) {
 }
 console.log("✓ Environment variables validated");
 
-// Initialize the Supabase client
-let supabase;
-try {
-  supabase = createClient(
-    process.env.SUPABASE_PROJECT_URL,
-    process.env.SUPABASE_ANON_KEY
-  );
-  console.log("✓ Supabase client initialized");
-} catch (error) {
-  console.error("❌ Failed to initialize Supabase client:", error);
-  process.exit(1);
+// Check if Supabase connection is enabled
+if (process.env.SUPABASE_CONNECT === "TRUE") {
+  // Initialize the Supabase client
+  let supabase;
+  try {
+    supabase = createClient(
+      process.env.SUPABASE_PROJECT_URL,
+      process.env.SUPABASE_ANON_KEY
+    );
+    console.log("✓ Supabase client initialized");
+  } catch (error) {
+    console.error("❌ Failed to initialize Supabase client:", error);
+    process.exit(1);
+  }
+
+  // Attach Supabase to the server object for access in other files
+  server.supabase = supabase;
 }
 
 // Only start the server in development mode or on Render
@@ -194,9 +200,6 @@ if (process.env.NODE_ENV !== "production" || process.env.RENDER) {
     console.error("❌ Fatal error starting server:", error);
   });
 }
-
-// Attach Supabase to the server object for access in other files
-server.supabase = supabase;
 
 // DUAL EXPORT PATTERN:
 // 1. For Vercel: Export a handler function that will be invoked by Vercel
