@@ -8,6 +8,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: RENDER
+        value: "true"
       - key: ENABLE_CHATGPT_ENDPOINT
         value: "true"
       - key: OPENAI_API_KEY
