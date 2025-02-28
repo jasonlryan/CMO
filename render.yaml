@@ -4,12 +4,10 @@ services:
     name: cmo-assessment-api
     runtime: node
     buildCommand: npm install
-    startCommand: node start.js
+    startCommand: node render-api.js
     envVars:
       - key: NODE_ENV
         value: production
-      - key: RENDER
-        value: "true"
       - key: ENABLE_CHATGPT_ENDPOINT
         value: "true"
       - key: OPENAI_API_KEY
