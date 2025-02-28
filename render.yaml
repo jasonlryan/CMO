@@ -3,8 +3,8 @@ services:
   - type: web
     name: cmo-assessment-api
     runtime: node
-    buildCommand: npm install
-    startCommand: node render-api.js
+    buildCommand: cp api-package.json package.json && npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
