@@ -13,6 +13,18 @@ const {
 const path = require("path");
 const fs = require("fs");
 
+// Function to get formatted timestamp in DDMMYYYY_HHMMSS format
+function getFormattedTimestamp() {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, "0");
+  const mm = String(now.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+  const yyyy = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const min = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  return `${dd}${mm}${yyyy}_${hh}${min}${ss}`;
+}
+
 // Helper to validate skill clusters
 function getValidCluster(cluster, defaultCluster) {
   const validCluster = {};
@@ -40,7 +52,7 @@ function getValidCluster(cluster, defaultCluster) {
 function createProfile(analysis) {
   const profile = {
     ...CMO_PROFILE_TEMPLATE,
-    id: new Date().toISOString(),
+    id: getFormattedTimestamp(),
     name: analysis.name || "Anonymous",
     current_role: analysis.current_role || "",
     years_experience: analysis.years_experience || 0,
@@ -133,20 +145,14 @@ async function handleAssessment(transcript) {
       profile,
       reports.candidate,
       reports.client,
-      new Date().toISOString().replace(/[^0-9]/g, "")
+      getFormattedTimestamp()
     );
 
     console.log("\nSaved outputs:", {
-      timestamp: new Date().toISOString().replace(/[^0-9]/g, ""),
-      profile: `profile_${new Date()
-        .toISOString()
-        .replace(/[^0-9]/g, "")}.json`,
-      candidate: `candidate_report_${new Date()
-        .toISOString()
-        .replace(/[^0-9]/g, "")}.json`,
-      client: `client_report_${new Date()
-        .toISOString()
-        .replace(/[^0-9]/g, "")}.json`,
+      timestamp: getFormattedTimestamp(),
+      profile: `profile_${getFormattedTimestamp()}.json`,
+      candidate: `candidate_report_${getFormattedTimestamp()}.json`,
+      client: `client_report_${getFormattedTimestamp()}.json`,
     });
 
     // Log qualitative data specifically
@@ -155,7 +161,7 @@ async function handleAssessment(transcript) {
       hasNotes: !!analysis.assessment_notes,
     });
 
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, "");
+    const timestamp = getFormattedTimestamp();
     const id = `cmo_${timestamp}`;
 
     return {
