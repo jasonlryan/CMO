@@ -6,7 +6,6 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY api-package.json ./
 
 # Install dependencies
 RUN npm install
@@ -24,7 +23,6 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/backend ./backend
-COPY --from=builder /app/render-api.js ./
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -37,4 +35,4 @@ EXPOSE 8080
 
 # Start the application directly without entrypoint script
 ENTRYPOINT []
-CMD ["node", "render-api.js"] 
+CMD ["node", "backend/index.js"] 
