@@ -50,44 +50,93 @@ function getValidCluster(cluster, defaultCluster) {
 
 // Helper to create CMO profile from analysis
 function createProfile(analysis) {
-  const profile = {
-    ...CMO_PROFILE_TEMPLATE,
+  // Start with a deep copy of the template
+  const defaultProfile = JSON.parse(JSON.stringify(CMO_PROFILE_TEMPLATE));
+
+  // Extract nested fields from capability_analysis if they exist
+  let extractedData = {};
+
+  if (analysis.capability_analysis) {
+    // Extract fields that should be at the root level
+    const fieldsToExtract = [
+      "key_strengths",
+      "growth_areas",
+      "evidence_analysis",
+      "assessment_notes",
+      "qualitative_insights",
+      "maturity_stage",
+    ];
+
+    fieldsToExtract.forEach((field) => {
+      if (
+        analysis.capability_analysis[field] &&
+        (!analysis[field] || Object.keys(analysis[field]).length === 0)
+      ) {
+        extractedData[field] = analysis.capability_analysis[field];
+        // Remove from capability_analysis to avoid duplication
+        delete analysis.capability_analysis[field];
+      }
+    });
+  }
+
+  // Create a base profile with ID and timestamp
+  const baseProfile = {
+    ...defaultProfile,
     id: getFormattedTimestamp(),
-    name: analysis.name || "Anonymous",
-    current_role: analysis.current_role || "",
-    years_experience: analysis.years_experience || 0,
-    industry: analysis.industry || "",
-    organization_type: analysis.organization_type || "B2B",
+  };
+
+  // Merge the analysis data with the base profile
+  const profile = deepMerge(baseProfile, {
+    name: analysis.name,
+    current_role: analysis.current_role,
+    years_experience: analysis.years_experience,
+    industry: analysis.industry,
+    organization_type: analysis.organization_type,
     skills: {
-      hardSkills:
-        analysis.skills?.hardSkills || CMO_PROFILE_TEMPLATE.skills.hardSkills,
-      softSkills:
-        analysis.skills?.softSkills || CMO_PROFILE_TEMPLATE.skills.softSkills,
+      hardSkills: analysis.skills?.hardSkills,
+      softSkills: analysis.skills?.softSkills,
       leadershipSkills: getValidCluster(
         analysis.skills?.leadershipSkills,
-        CMO_PROFILE_TEMPLATE.skills.leadershipSkills
+        defaultProfile.skills.leadershipSkills
       ),
       commercialAcumen: getValidCluster(
         analysis.skills?.commercialAcumen,
-        CMO_PROFILE_TEMPLATE.skills.commercialAcumen
+        defaultProfile.skills.commercialAcumen
       ),
     },
-    capability_analysis:
-      analysis.capability_analysis || CMO_PROFILE_TEMPLATE.capability_analysis,
+    // Use capability_analysis from analysis, but ensure it doesn't contain duplicated fields
+    capability_analysis: analysis.capability_analysis,
+    // Use extracted data or original analysis data for these fields
     evidence_analysis:
-      analysis.evidence_analysis || CMO_PROFILE_TEMPLATE.evidence_analysis,
-    maturity_stage: {
-      best_fit: analysis.maturity_stage?.best_fit || "Growth",
-      scoring: analysis.maturity_stage?.scoring || "Growth",
-      depth: analysis.maturity_stage?.depth || "Growth",
-      alignment_reasons: analysis.maturity_stage?.alignment_reasons || [],
-    },
+      extractedData.evidence_analysis || analysis.evidence_analysis,
     assessment_notes:
-      analysis.assessment_notes || CMO_PROFILE_TEMPLATE.assessment_notes,
+      extractedData.assessment_notes || analysis.assessment_notes,
     qualitative_insights:
-      analysis.qualitative_insights ||
-      CMO_PROFILE_TEMPLATE.qualitative_insights,
-  };
+      extractedData.qualitative_insights || analysis.qualitative_insights,
+    key_strengths: extractedData.key_strengths || analysis.key_strengths,
+    growth_areas: extractedData.growth_areas || analysis.growth_areas,
+    maturity_stage: {
+      best_fit: (
+        extractedData.maturity_stage?.best_fit ||
+        analysis.maturity_stage?.best_fit ||
+        "Growth"
+      ).replace(" Stage", ""),
+      scoring: (
+        extractedData.maturity_stage?.scoring ||
+        analysis.maturity_stage?.scoring ||
+        "Growth"
+      ).replace(" Stage", ""),
+      depth: (
+        extractedData.maturity_stage?.depth ||
+        analysis.maturity_stage?.depth ||
+        "Growth"
+      ).replace(" Stage", ""),
+      alignment_reasons:
+        extractedData.maturity_stage?.alignment_reasons ||
+        analysis.maturity_stage?.alignment_reasons ||
+        [],
+    },
+  });
 
   console.log("\nCreated Profile:", {
     id: profile.id,
@@ -95,8 +144,12 @@ function createProfile(analysis) {
     skillCount: Object.keys(profile.skills?.hardSkills || {}).length,
     sampleSkill: profile.skills?.hardSkills?.marketing_strategy,
     hasQualitativeData: {
-      notes: !!analysis.assessment_notes,
-      insights: !!analysis.qualitative_insights,
+      notes:
+        !!profile.assessment_notes &&
+        Object.keys(profile.assessment_notes).length > 0,
+      insights:
+        !!profile.qualitative_insights &&
+        Object.keys(profile.qualitative_insights).length > 0,
     },
   });
 
@@ -122,27 +175,11 @@ async function handleAssessment(transcript) {
       warnLog("Missing skills in analysis, using default template");
       analysis.skills = JSON.parse(JSON.stringify(CMO_PROFILE_TEMPLATE.skills));
     } else {
-      // Ensure each skill category exists
-      if (!analysis.skills.hardSkills) {
-        analysis.skills.hardSkills = JSON.parse(
-          JSON.stringify(CMO_PROFILE_TEMPLATE.skills.hardSkills)
-        );
-      }
-      if (!analysis.skills.softSkills) {
-        analysis.skills.softSkills = JSON.parse(
-          JSON.stringify(CMO_PROFILE_TEMPLATE.skills.softSkills)
-        );
-      }
-      if (!analysis.skills.leadershipSkills) {
-        analysis.skills.leadershipSkills = JSON.parse(
-          JSON.stringify(CMO_PROFILE_TEMPLATE.skills.leadershipSkills)
-        );
-      }
-      if (!analysis.skills.commercialAcumen) {
-        analysis.skills.commercialAcumen = JSON.parse(
-          JSON.stringify(CMO_PROFILE_TEMPLATE.skills.commercialAcumen)
-        );
-      }
+      // Create a normalized skills structure using deepMerge
+      const defaultSkills = JSON.parse(
+        JSON.stringify(CMO_PROFILE_TEMPLATE.skills)
+      );
+      analysis.skills = deepMerge(defaultSkills, analysis.skills);
     }
 
     // Ensure maturity_stage has a valid value
@@ -236,6 +273,65 @@ function formatDate(date) {
     .replace(/[/:]/g, "-");
 }
 
+/**
+ * Safely merges source object into target object without overwriting populated fields with empty values
+ * @param {Object} target - The target object to merge into
+ * @param {Object} source - The source object to merge from
+ * @returns {Object} - The merged object
+ */
+function deepMerge(target, source) {
+  // If source is null or undefined, return target
+  if (!source) return target;
+
+  // Create a new object to avoid modifying the original target
+  const result = { ...target };
+
+  // Iterate through source properties
+  Object.keys(source).forEach((key) => {
+    // Skip if source property is undefined or null
+    if (source[key] === undefined || source[key] === null) return;
+
+    // If both target and source have object values for this key, merge them recursively
+    if (
+      typeof source[key] === "object" &&
+      !Array.isArray(source[key]) &&
+      typeof target[key] === "object" &&
+      !Array.isArray(target[key])
+    ) {
+      result[key] = deepMerge(target[key], source[key]);
+    }
+    // For arrays, use source array if it's not empty, otherwise keep target
+    else if (Array.isArray(source[key])) {
+      result[key] = source[key].length > 0 ? source[key] : target[key] || [];
+    }
+    // For primitive values or when types don't match, prefer non-empty source values
+    else {
+      // For strings, check if source is non-empty
+      if (typeof source[key] === "string") {
+        result[key] =
+          source[key].trim() !== "" ? source[key] : target[key] || "";
+      }
+      // For objects, check if it has any keys
+      else if (
+        typeof source[key] === "object" &&
+        Object.keys(source[key]).length > 0
+      ) {
+        result[key] = source[key];
+      }
+      // For other types (numbers, booleans), use source value
+      else if (typeof source[key] !== "object") {
+        result[key] = source[key];
+      }
+      // Default case: keep target value
+      else {
+        result[key] = target[key];
+      }
+    }
+  });
+
+  return result;
+}
+
 function saveOutputs(profile, candidateReport, clientReport, timestamp) {
   // Log the environment variable value for debugging
   console.log(
@@ -279,4 +375,4 @@ function saveOutputs(profile, candidateReport, clientReport, timestamp) {
   );
 }
 
-module.exports = { handleAssessment };
+module.exports = { handleAssessment, deepMerge };
