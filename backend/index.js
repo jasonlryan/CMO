@@ -49,9 +49,9 @@ if (process.env.SUPABASE_CONNECT === "TRUE") {
   server.supabase = supabase;
 }
 
-// Only start the server in development mode or on Render
+// Only start the server in development mode
 // In production (Vercel), we'll export the handler function
-if (process.env.NODE_ENV !== "production" || process.env.RENDER) {
+if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3000; // Use PORT from environment or default to 3000
   let serverInstance = null;
 
