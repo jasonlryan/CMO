@@ -30,6 +30,11 @@ const CANDIDATE_REPORT_TEMPLATE = {
   },
   depthAnalysis: {
     byLevel: [],
+    compositeSummary: {
+      overall: 0,
+      byCluster: {},
+      narrative: "",
+    },
   },
   capabilityAnalysis: {
     capabilities: [],
@@ -149,10 +154,19 @@ function generateReports(profile, scores) {
       ),
     },
     depthAnalysis: {
-      byLevel: Object.entries(scores.depthAnalysis).map(([bucket, data]) => ({
-        ...data,
-        recommendations: generateDepthRecommendations(data),
-      })),
+      byLevel: Object.entries(scores.depthAnalysis.perSkill || {}).map(
+        ([bucket, data]) => ({
+          ...data,
+          recommendations: generateDepthRecommendations(data),
+        })
+      ),
+      compositeSummary: {
+        overall: scores.depthAnalysis.overall || 0,
+        byCluster: scores.depthAnalysis.composite || {},
+        narrative:
+          scores.depthAnalysis.narrative ||
+          "No depth analysis narrative available.",
+      },
     },
     capabilityAnalysis: {
       capabilities: scores.capabilities

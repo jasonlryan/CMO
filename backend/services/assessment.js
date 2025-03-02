@@ -115,6 +115,50 @@ async function handleAssessment(transcript) {
 
     // Core operations
     const analysis = await openaiService.analyze(transcript);
+
+    // Normalize the analysis structure immediately to ensure valid skills structure
+    // This prevents the "Cannot read properties of undefined (reading 'hardSkills')" error
+    if (!analysis.skills) {
+      warnLog("Missing skills in analysis, using default template");
+      analysis.skills = JSON.parse(JSON.stringify(CMO_PROFILE_TEMPLATE.skills));
+    } else {
+      // Ensure each skill category exists
+      if (!analysis.skills.hardSkills) {
+        analysis.skills.hardSkills = JSON.parse(
+          JSON.stringify(CMO_PROFILE_TEMPLATE.skills.hardSkills)
+        );
+      }
+      if (!analysis.skills.softSkills) {
+        analysis.skills.softSkills = JSON.parse(
+          JSON.stringify(CMO_PROFILE_TEMPLATE.skills.softSkills)
+        );
+      }
+      if (!analysis.skills.leadershipSkills) {
+        analysis.skills.leadershipSkills = JSON.parse(
+          JSON.stringify(CMO_PROFILE_TEMPLATE.skills.leadershipSkills)
+        );
+      }
+      if (!analysis.skills.commercialAcumen) {
+        analysis.skills.commercialAcumen = JSON.parse(
+          JSON.stringify(CMO_PROFILE_TEMPLATE.skills.commercialAcumen)
+        );
+      }
+    }
+
+    // Ensure maturity_stage has a valid value
+    if (
+      !analysis.maturity_stage ||
+      analysis.maturity_stage.best_fit === "insufficient data"
+    ) {
+      warnLog("Invalid maturity stage, using default Growth stage");
+      analysis.maturity_stage = {
+        best_fit: "Growth",
+        scoring: "Growth",
+        depth: "Growth",
+        alignment_reasons: [],
+      };
+    }
+
     const profile = createProfile(analysis);
 
     // Preserve categorical structure
@@ -193,6 +237,16 @@ function formatDate(date) {
 }
 
 function saveOutputs(profile, candidateReport, clientReport, timestamp) {
+  // Log the environment variable value for debugging
+  console.log(
+    "[Assessment] ENABLE_CHATGPT_ENDPOINT value:",
+    process.env.ENABLE_CHATGPT_ENDPOINT
+  );
+  console.log(
+    "[Assessment] Type of ENABLE_CHATGPT_ENDPOINT:",
+    typeof process.env.ENABLE_CHATGPT_ENDPOINT
+  );
+
   // Skip file saving when ChatGPT endpoint is enabled
   if (process.env.ENABLE_CHATGPT_ENDPOINT === "true") {
     console.log("[Assessment] Skipping file saves - ChatGPT endpoint enabled");

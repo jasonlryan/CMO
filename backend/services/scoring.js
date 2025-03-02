@@ -110,11 +110,86 @@ function validateSkillsStructure(skills) {
     "commercialAcumen",
   ];
 
+  // Check each required cluster exists
+  const missingClusters = [];
   requiredClusters.forEach((cluster) => {
     if (!skills[cluster] || typeof skills[cluster] !== "object") {
-      throw new Error(`Missing required skill cluster: ${cluster}`);
+      missingClusters.push(cluster);
     }
   });
+
+  if (missingClusters.length > 0) {
+    throw new Error(
+      `Missing required skill clusters: ${missingClusters.join(", ")}`
+    );
+  }
+
+  // Validate each cluster has at least one skill with required properties
+  const invalidClusters = [];
+  requiredClusters.forEach((cluster) => {
+    const clusterSkills = skills[cluster];
+    if (Object.keys(clusterSkills).length === 0) {
+      invalidClusters.push(`${cluster} (empty)`);
+    } else {
+      // Check if at least one skill has the required properties
+      let hasValidSkill = false;
+      for (const [skillName, skillData] of Object.entries(clusterSkills)) {
+        if (
+          skillData &&
+          typeof skillData === "object" &&
+          typeof skillData.score === "number"
+        ) {
+          hasValidSkill = true;
+          break;
+        }
+      }
+      if (!hasValidSkill) {
+        invalidClusters.push(`${cluster} (no valid skills)`);
+      }
+    }
+  });
+
+  if (invalidClusters.length > 0) {
+    throw new Error(`Invalid skill clusters: ${invalidClusters.join(", ")}`);
+  }
+}
+
+/**
+ * Computes a composite depth alignment score per cluster.
+ * For each skill in a cluster, the gap is calculated as:
+ *   gap = expectedDepth - reportedDepth (if reportedDepth < expectedDepth; else 0)
+ * The composite score is then:
+ *   composite = 1 - (totalGap / totalMaxGap)
+ *
+ * Returns an object with a composite score for each cluster.
+ */
+function computeCompositeDepthScores(skills, maturityStage) {
+  const compositeScores = {};
+  // For each category (hardSkills, softSkills, etc.)
+  for (const category in skills) {
+    let totalGap = 0;
+    let totalMaxGap = 0;
+    let count = 0;
+    for (const skill in skills[category]) {
+      const data = skills[category][skill];
+      const reported =
+        data.reportedDepth !== undefined ? data.reportedDepth : data.depth || 1;
+      const expected =
+        (DEPTH_LEVELS[maturityStage] &&
+          DEPTH_LEVELS[maturityStage][category] &&
+          DEPTH_LEVELS[maturityStage][category][skill]) ||
+        1;
+      const gap = Math.max(0, expected - reported);
+      totalGap += gap;
+      // Maximum gap: if reportedDepth was 1, gap = expected - 1.
+      totalMaxGap += Math.max(0, expected - 1);
+      count++;
+    }
+    compositeScores[category] = fixPrecision(
+      totalMaxGap > 0 ? 1 - totalGap / totalMaxGap : 1
+    );
+  }
+  return compositeScores;
 }
 
 /**
@@ -123,54 +198,116 @@ function validateSkillsStructure(skills) {
  */
 function evaluateSkillsByStage(skills, maturityStage) {
   try {
-    validateSkillsStructure(skills);
-  } catch (error) {
-    errorLog("Invalid skills structure:", error.message);
-    errorLog("Profile maturity stage:", maturityStage);
-    throw new Error("Cannot analyze skills: Invalid structure");
-  }
+    // Validate skills structure first
+    try {
+      validateSkillsStructure(skills);
+    } catch (error) {
+      errorLog("Invalid skills structure:", error.message);
+      errorLog("Profile maturity stage:", maturityStage);
+      warnLog("Using default skills structure");
+      skills = JSON.parse(JSON.stringify(CMO_PROFILE_TEMPLATE.skills));
+    }
 
-  console.log("[Scoring Input] Skills Structure:", {
-    hasHardSkills: !!skills.hardSkills,
-    hasSoftSkills: !!skills.softSkills,
-    skillCount: Object.keys(skills).length,
-  });
-
-  debugLog("Stage received by scoring:", maturityStage);
-  if (!skills) {
-    warnLog("Missing skills, using defaults");
-    skills = CMO_PROFILE_TEMPLATE.capability_analysis;
-  }
-
-  const scoringStage = maturityStage?.replace(" Stage", "") || "Growth";
-  const weights = STAGE_WEIGHTS[scoringStage] || STAGE_WEIGHTS["Growth"];
-
-  if (!STAGE_WEIGHTS[scoringStage]) {
-    warnLog(`Invalid stage "${scoringStage}", using Growth`);
-  }
-
-  Object.entries(skills).forEach(([category, skillSet]) => {
-    Object.entries(skillSet).forEach(([skill, data]) => {
-      const rawScore = data.score;
-
-      skills[category][skill].scores = {
-        raw: rawScore,
-      };
+    console.log("[Scoring Input] Skills Structure:", {
+      hasHardSkills: !!skills.hardSkills,
+      hasSoftSkills: !!skills.softSkills,
+      skillCount: Object.keys(skills).length,
     });
-  });
 
-  const depthStage = maturityStage.depth || "Growth";
-  const depthAnalysis = assessDepthLevels(skills, depthStage);
+    debugLog("Stage received by scoring:", maturityStage);
 
-  const results = {
-    gaps: calculateSkillGaps(skills, weights, scoringStage),
-    score: calculateMaturityScore(skills, scoringStage),
-    stageAlignment: calculateStageAlignment(skills, scoringStage),
-    capabilities: evaluateCapabilities(skills, scoringStage),
-    depthAnalysis: depthAnalysis,
-  };
+    // Normalize maturityStage
+    let scoringStage = "Growth"; // Default fallback
 
-  return results;
+    if (maturityStage) {
+      // Remove " Stage" suffix if present
+      scoringStage = maturityStage.replace(" Stage", "");
+
+      // Check if the normalized stage is valid
+      if (!STAGE_WEIGHTS[scoringStage]) {
+        warnLog(`Invalid stage "${scoringStage}", using Growth`);
+        scoringStage = "Growth";
+      }
+    } else {
+      warnLog("Missing maturity stage, using Growth");
+    }
+
+    const weights = STAGE_WEIGHTS[scoringStage];
+
+    // Process skill scores
+    Object.entries(skills).forEach(([category, skillSet]) => {
+      Object.entries(skillSet).forEach(([skill, data]) => {
+        const rawScore = data.score;
+
+        skills[category][skill].scores = {
+          raw: rawScore,
+        };
+      });
+    });
+
+    const depthStage = maturityStage?.depth || scoringStage;
+
+    // Existing per-skill depth analysis
+    const perSkillDepth = assessDepthLevels(skills, depthStage);
+
+    // NEW: Compute composite depth alignment scores per cluster
+    const compositeDepth = computeCompositeDepthScores(skills, depthStage);
+    const clusterKeys = Object.keys(compositeDepth);
+    const overallComposite = fixPrecision(
+      clusterKeys.reduce((sum, key) => sum + compositeDepth[key], 0) /
+        clusterKeys.length
+    );
+
+    // Build a narrative if any cluster composite score is low (e.g., below 0.8)
+    const narrativeParts = [];
+    for (const [category, score] of Object.entries(compositeDepth)) {
+      if (score < 0.8) {
+        narrativeParts.push(
+          `The ${category} composite depth score is ${Math.round(
+            score * 100
+          )}%, below expectations.`
+        );
+      }
+    }
+    const narrative =
+      narrativeParts.length > 0
+        ? narrativeParts.join(" ")
+        : "All skill clusters meet expected depth levels.";
+
+    const results = {
+      gaps: calculateSkillGaps(skills, weights, scoringStage),
+      score: calculateMaturityScore(skills, scoringStage),
+      stageAlignment: calculateStageAlignment(skills, scoringStage),
+      capabilities: evaluateCapabilities(skills, scoringStage),
+      depthAnalysis: {
+        perSkill: perSkillDepth, // existing per-skill analysis
+        composite: compositeDepth, // new composite per-cluster scores
+        overall: overallComposite, // overall composite score
+        narrative: narrative,
+      },
+    };
+
+    return results;
+  } catch (error) {
+    errorLog("Error in evaluateSkillsByStage:", error);
+    // Return a minimal valid result structure to prevent downstream errors
+    return {
+      gaps: {},
+      score: 0.5,
+      stageAlignment: {
+        matches: false,
+        gaps: {},
+        recommendations: ["Error in skill evaluation"],
+      },
+      capabilities: [],
+      depthAnalysis: {
+        perSkill: {},
+        composite: {},
+        overall: 0.5,
+        narrative: "Unable to analyze skill depths due to an error.",
+      },
+    };
+  }
 }
 
 function calculateStageAlignment(skills, stage) {
@@ -178,7 +315,30 @@ function calculateStageAlignment(skills, stage) {
     stage: stage,
     skills: Object.keys(skills),
   });
+
+  // Ensure we have a valid stage, defaulting to "Growth" if not
+  if (!stage || !STAGE_WEIGHTS[stage]) {
+    warnLog(
+      `Invalid stage "${stage}" in calculateStageAlignment, using Growth as fallback`
+    );
+    stage = "Growth";
+  }
+
   const weights = STAGE_WEIGHTS[stage];
+
+  // Validate that weights exist
+  if (!weights) {
+    errorLog(`Critical error: No weights found for stage "${stage}"`);
+    // Return a default alignment structure to prevent crashes
+    return {
+      matches: false,
+      gaps: {},
+      recommendations: [
+        "Unable to calculate stage alignment due to missing configuration",
+      ],
+    };
+  }
+
   const clusterScores = {};
 
   // Calculate average score for each cluster
@@ -307,4 +467,5 @@ module.exports = {
   fixPrecision,
   assessDepthLevels,
   validateSkillsStructure,
+  computeCompositeDepthScores,
 };
