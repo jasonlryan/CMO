@@ -78,3 +78,6 @@ speech.txt
 fix404.md
 chatgpt-openapi.json
 
+# Deployment scripts with sensitive information
+deploy-gcloud.sh
+
