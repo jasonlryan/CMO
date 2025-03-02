@@ -13,6 +13,8 @@ const { handleAssessment } = require("./backend/services/assessment");
 const app = express();
 
 // Configure middleware
+app.use(express.json());
+app.use(express.text({ type: ["text/*", "application/*"] })); // Handle various content types as text
 app.use(
   cors({
     origin: "*",
@@ -20,7 +22,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json());
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -34,10 +35,52 @@ app.get("/api/health", (req, res) => {
 // ChatGPT assessment endpoint
 app.post("/api/chatgpt/assessment", async (req, res) => {
   console.log("[API] ChatGPT assessment request received");
+  console.log("[API] Content-Type:", req.get("Content-Type"));
+  console.log("[API] Request Headers:", req.headers);
+  console.log("[API] Raw Body Type:", typeof req.body);
+  console.log("[API] Raw Body:", req.body);
+
+  // Check if ChatGPT endpoint is enabled
+  if (process.env.ENABLE_CHATGPT_ENDPOINT !== "true") {
+    console.log("[API] ChatGPT endpoint is disabled");
+    return res.status(403).json({
+      error: {
+        code: "ENDPOINT_DISABLED",
+        message: "ChatGPT endpoint is not enabled",
+      },
+    });
+  }
 
   try {
-    // Validate request
-    if (!req.body || !req.body.transcript) {
+    // Get transcript from request body with enhanced content type handling
+    let transcript;
+    const contentType = req.get("Content-Type") || "";
+
+    if (typeof req.body === "string") {
+      // For text/* and application/* content types, try to parse as JSON first
+      try {
+        const parsed = JSON.parse(req.body);
+        transcript = parsed.transcript;
+      } catch (e) {
+        // If parsing fails, use the raw text as transcript
+        console.log("[API] Failed to parse body as JSON, using raw text");
+        transcript = req.body;
+      }
+    } else if (req.body && typeof req.body === "object") {
+      // For application/json content type (already parsed by express.json())
+      transcript = req.body.transcript;
+    } else {
+      console.log("[API] Unexpected body type:", typeof req.body);
+      return res.status(400).json({
+        error: {
+          code: "INVALID_REQUEST",
+          message: "Invalid request body format",
+        },
+      });
+    }
+
+    // Validate transcript
+    if (!transcript) {
       console.log("[API] Missing transcript in request body");
       return res.status(400).json({
         error: {
@@ -49,7 +92,7 @@ app.post("/api/chatgpt/assessment", async (req, res) => {
 
     // Process assessment
     console.log("[API] Starting assessment process...");
-    const result = await handleAssessment(String(req.body.transcript));
+    const result = await handleAssessment(String(transcript));
 
     // Return successful response
     console.log("[API] Assessment successful");

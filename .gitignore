@@ -32,16 +32,11 @@ docs/
 
 # Exclude unnecessary backend components
 backend/data/
-backend/tests/
-backend/config/
-backend/api/
+# backend/tests/  # Removed this line to allow tracking of backend/tests
+# backend/config/
+# backend/api/
 backend/services/backups/
-backend/services/startup.js
-backend/services/scoring.js
-backend/services/supabase.js
-backend/prompts/backups/
-backend/templates/backups/
-backend/templates/reports.js
+
 
 # Exclude Vercel specific files
 vercel*

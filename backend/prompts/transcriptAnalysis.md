@@ -226,4 +226,7 @@ EXPECTED STRUCTURE:
 }
 }
 
-Return ONLY the JSON object, no other text or markdown formatting.
+Return ONLY a valid JSON object.
+DO NOT return any markdown formatting, explanations, or surrounding text.
+If any section is missing, include a placeholder with "insufficient data".
+Wrap the response in a single `{}`.
