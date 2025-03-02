@@ -4,6 +4,16 @@ This document defines the mandatory guidelines for the CMO Assessment Tool. All 
 
 ---
 
+## POINT 1: NEVER COMMIT SECRETS OR API KEYS TO GIT
+
+- API keys, passwords, tokens, and other secrets must NEVER be committed to Git repositories
+- Always use environment variables or secure secret management systems for sensitive information
+- Store secrets in `.env` files that are listed in `.gitignore`
+- If a secret is accidentally committed, consider it compromised and rotate it immediately
+- Never include secrets in scripts or configuration files that will be committed
+
+---
+
 ## 1. Model Selection
 
 **MUST:**
