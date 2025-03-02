@@ -229,7 +229,11 @@ function assessDepthLevels(skills, maturityStage) {
 
   Object.entries(skills).forEach(([category, skills]) => {
     Object.entries(skills).forEach(([skillName, skillData]) => {
-      const reportedDepth = skillData.depth;
+      // Check for reportedDepth first, then fall back to depth if not present
+      const reportedDepth =
+        skillData.reportedDepth !== undefined
+          ? skillData.reportedDepth
+          : skillData.depth || 1;
       const expectedDepth =
         DEPTH_LEVELS[maturityStage]?.[category]?.[skillName] || 1;
 
@@ -275,7 +279,11 @@ function calculateSkillGaps(skills, targetWeights, stage) {
         Object.entries(skills[category]).forEach(([skill, skillData]) => {
           // stage is now passed in, already normalized
           const expectedDepth = DEPTH_LEVELS[stage]?.[category]?.[skill] || 1;
-          const actualDepth = skillData.depth || 1;
+          // Check for reportedDepth first, then fall back to depth if not present
+          const actualDepth =
+            skillData.reportedDepth !== undefined
+              ? skillData.reportedDepth
+              : skillData.depth || 1;
           const adjustedScore = fixPrecision(
             Math.max(0, targetWeights[category] - actualDepth)
           );
