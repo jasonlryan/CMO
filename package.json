@@ -13,7 +13,7 @@
     "start:backend": "node backend/index.js",
     "build": "echo \"=== STARTING BUILD PROCESS ===\" && npm install && cd frontend && echo \"=== INSTALLING FRONTEND DEPENDENCIES ===\" && npm install && echo \"=== BUILDING FRONTEND WITHOUT TYPESCRIPT CHECKS ===\" && npm run build || (echo \"=== BUILD FAILED, SHOWING ERROR DETAILS ===\" && ls -la && echo \"=== CURRENT DIRECTORY: $(pwd) ===\" && exit 1) && echo \"=== BUILD COMPLETE, CHECKING DIST FOLDER ===\" && ls -la dist && echo \"=== CONTENTS OF DIST FOLDER ===\" && ls -la dist/* || echo \"=== BUILD FAILED ===\" && exit 1",
     "build:local": "npm run build && NODE_ENV=production node vercel.js",
-    "deploy:gcloud": "NODE_ENV=production DOCKER_DEFAULT_PLATFORM=linux/amd64 docker build --platform linux/amd64 -t gcr.io/scuk-test/cmo:latest . && docker push gcr.io/scuk-test/cmo:latest && gcloud run deploy cmo --image gcr.io/scuk-test/cmo:latest --platform managed --region europe-west1 --set-env-vars NODE_ENV=production,ENABLE_CHATGPT_ENDPOINT=true,OPENAI_API_KEY=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"
+    "deploy:gcloud": "NODE_ENV=production DOCKER_DEFAULT_PLATFORM=linux/amd64 docker build --platform linux/amd64 -t gcr.io/scuk-test/cmo:latest . && docker push gcr.io/scuk-test/cmo:latest && gcloud run deploy cmo --image gcr.io/scuk-test/cmo:latest --platform managed --region europe-west1 --set-env-vars NODE_ENV=production,ENABLE_CHATGPT_ENDPOINT=true"
   },
   "engines": {
     "node": ">=18.0.0"
