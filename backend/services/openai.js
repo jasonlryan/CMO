@@ -150,8 +150,19 @@ const openaiService = {
       infoLog("Starting stage: OpenAI");
       const startApi = performance.now();
 
+      // Log the API key being used (first few characters only for security)
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        errorLog("No OpenAI API key found in environment variables");
+        throw new Error(
+          "Missing OpenAI API key. Please set OPENAI_API_KEY in your .env file."
+        );
+      }
+
+      debugLog("Using API key starting with:", apiKey.substring(0, 10) + "...");
+
       const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
+        apiKey: apiKey,
       });
 
       // Debug transcript type and content

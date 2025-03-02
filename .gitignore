@@ -71,3 +71,7 @@ chatgpt-openapi.json
 # Deployment scripts with sensitive information
 deploy-gcloud.sh
 
+# Files with API keys
+fresh-start.js
+start-fresh.sh
+

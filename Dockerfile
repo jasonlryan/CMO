@@ -33,6 +33,6 @@ ENV ENABLE_CHATGPT_ENDPOINT=true
 # Expose port
 EXPOSE 8080
 
-# Start the application directly without entrypoint script
+# Start the simplified ChatGPT-only server
 ENTRYPOINT []
-CMD ["node", "backend/index.js"] 
+CMD ["node", "backend/chatgpt-server.js"] 

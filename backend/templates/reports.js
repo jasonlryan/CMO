@@ -3,6 +3,14 @@
 const path = require("path");
 const { warnLog } = require("../config/logging");
 
+// Define DEFAULT_DEPTH_ANALYSIS constant
+const DEFAULT_DEPTH_ANALYSIS = {
+  hardSkills: {},
+  softSkills: {},
+  leadershipSkills: {},
+  commercialAcumen: {},
+};
+
 // Stub function for generating depth recommendations.
 // This can be extended to include more sophisticated logic.
 function generateDepthRecommendations(level, data) {
@@ -250,4 +258,4 @@ function generateReports(profile, scores) {
   };
 }
 
-module.exports = { generateReports };
+module.exports = { generateReports, DEFAULT_DEPTH_ANALYSIS };
