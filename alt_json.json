@@ -1,0 +1,70 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "CMO Assessment API",
+      "description": "API for assessing marketing executives",
+      "version": "1.0.0",
+      "termsOfService": "https://cmoassessment.vercel.app/terms",
+      "contact": {
+        "name": "CMO Assessment Tool Support",
+        "url": "https://cmoassessment.vercel.app/contact"
+      },
+      "x-privacy-policy": "https://cmoassessment.vercel.app/privacy"
+    },
+    "servers": [
+      {
+        "url": "https://cmo-135405620426.europe-west1.run.app",
+        "description": "Production API Server"
+      }
+    ],
+    "paths": {
+      "/api/chatgpt/assessment": {
+        "post": {
+          "summary": "Analyze a CMO interview transcript",
+          "operationId": "analyzeCMOTranscript",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "model": {
+                      "type": "string",
+                      "enum": ["gpt-4o", "gpt-4o-mini"],
+                      "default": "gpt-4o-mini",
+                      "description": "The GPT model to use for analysis."
+                    },
+                    "transcript": {
+                      "type": "string",
+                      "description": "The interview transcript text"
+                    }
+                  },
+                  "required": ["transcript"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful analysis",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "data": {
+                        "type": "object",
+                        "description": "Profile data"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  

@@ -24,17 +24,20 @@ async function testEndpoints() {
       JSON.stringify(assessmentResponse.data, null, 2)
     );
 
+    // Add more detailed logging
+    console.log("Response structure:", Object.keys(assessmentResponse.data));
+
     // Verify response
     const result = assessmentResponse.data;
     if (!result) {
       throw new Error("No response data from API");
     }
-    if (!result.profile) {
-      throw new Error("No profile object in response");
-    }
-    const profile = result.profile;
+
+    // Check if profile is in the data property (new structure) or directly in the response (old structure)
+    const profile = result.profile || result.data;
     if (!profile || !profile.id) {
-      throw new Error("Invalid profile response");
+      console.error("Expected profile object but got:", Object.keys(result));
+      throw new Error("No valid profile object in response");
     }
     console.log("Got profile:", profile.id);
 

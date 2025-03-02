@@ -187,6 +187,12 @@ function formatDate(date) {
 }
 
 function saveOutputs(profile, candidateReport, clientReport, timestamp) {
+  // Skip file saving when ChatGPT endpoint is enabled
+  if (process.env.ENABLE_CHATGPT_ENDPOINT === "true") {
+    console.log("[Assessment] Skipping file saves - ChatGPT endpoint enabled");
+    return;
+  }
+
   const dataDir = path.join(__dirname, "../data");
   const reportsDir = path.join(dataDir, "reports");
   const profilesDir = path.join(dataDir, "profiles");

@@ -99,29 +99,8 @@ function correctSkillsStructure(skills) {
     commercialAcumen: {},
   };
 
-  // Handle case where skills might be undefined
-  if (!skills) {
-    console.warn("Skills object is undefined, returning empty structure");
-    return correctedSkills;
-  }
-
-  // Extract capability_analysis if it exists within skills
-  let capabilityAnalysis = null;
-  if (skills.capability_analysis) {
-    capabilityAnalysis = skills.capability_analysis;
-    delete skills.capability_analysis;
-  }
-
   // Move any nested skills to top level
   Object.entries(skills).forEach(([category, skillsObj]) => {
-    if (category === "capability_analysis") return; // Skip capability_analysis
-
-    // Handle case where skillsObj might not be an object
-    if (!skillsObj || typeof skillsObj !== "object") {
-      console.warn(`Skipping non-object skill category: ${category}`);
-      return;
-    }
-
     Object.entries(skillsObj).forEach(([skill, data]) => {
       if (
         skill === "softSkills" ||
@@ -135,11 +114,6 @@ function correctSkillsStructure(skills) {
       }
     });
   });
-
-  // Add capability_analysis back if it was extracted
-  if (capabilityAnalysis) {
-    skills.capability_analysis = capabilityAnalysis;
-  }
 
   return correctedSkills;
 }
@@ -196,16 +170,9 @@ const openaiService = {
         // Parse JSON once and store
         const parsed = JSON.parse(cleanedContent);
 
-        // Log the full parsed response structure for debugging
-        debugLog(
-          "Full OpenAI Response Structure:",
-          JSON.stringify(parsed, null, 2)
-        );
-
-        // Create a valid structure even if the response is unexpected
+        // Validate complete structure first
         if (!parsed.skills || typeof parsed.skills !== "object") {
-          warnLog("Missing or invalid skills structure in OpenAI response");
-          parsed.skills = {}; // Ensure skills exists even if empty
+          throw new Error("Missing or invalid skills structure");
         }
 
         // Log parsed response
@@ -213,69 +180,21 @@ const openaiService = {
           hasSkills: !!parsed.skills,
           skillClusters: Object.keys(parsed.skills || {}),
           sampleSkill: parsed.skills?.hardSkills?.marketing_strategy,
-          hasCapabilityAnalysis:
-            !!parsed.capability_analysis ||
-            !!parsed.skills?.capability_analysis,
         });
-
-        // Store capability_analysis separately if it exists at the top level
-        let capabilityAnalysis = parsed.capability_analysis;
-
-        // Or if it exists inside skills
-        if (!capabilityAnalysis && parsed.skills?.capability_analysis) {
-          capabilityAnalysis = parsed.skills.capability_analysis;
-          delete parsed.skills.capability_analysis;
-        }
 
         // Process skills structure
         parsed.skills = correctSkillsStructure(parsed.skills);
 
-        // Add capability_analysis back to the parsed object (not inside skills)
-        if (capabilityAnalysis) {
-          parsed.capability_analysis = capabilityAnalysis;
-
-          // Validate capability_analysis structure only if it exists
-          const requiredCapabilities = [
-            "technical_capability",
-            "leadership_capability",
-            "investor_readiness",
-            "tech_readiness",
-          ];
-
-          const missingCapabilities = requiredCapabilities.filter(
-            (cap) => !parsed.capability_analysis[cap]
-          );
-
-          if (missingCapabilities.length > 0) {
-            warnLog(
-              `Missing required capabilities: ${missingCapabilities.join(", ")}`
-            );
-            // Log warning but don't throw error
-          }
-        } else {
-          // Log warning but don't throw error for missing capability_analysis
-          warnLog("Missing capability_analysis in OpenAI response");
-        }
-
-        // Validate evidence without adding defaults
-        let missingEvidence = false;
+        // Only validate evidence after structure is confirmed
         Object.entries(parsed.skills).forEach(([clusterName, cluster]) => {
           Object.entries(cluster).forEach(([skillName, skill]) => {
-            if (
-              !skill.evidence ||
-              !Array.isArray(skill.evidence) ||
-              skill.evidence.length === 0
-            ) {
-              warnLog(`Missing evidence for ${clusterName}.${skillName}`);
-              missingEvidence = true;
+            if (!skill.evidence?.length) {
+              throw new Error(
+                `Missing evidence for ${clusterName}.${skillName}`
+              );
             }
           });
         });
-
-        if (missingEvidence) {
-          warnLog("Some skills are missing evidence in the OpenAI response");
-          // Log warning but don't throw error
-        }
 
         return parsed;
       } catch (error) {

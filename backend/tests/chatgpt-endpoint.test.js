@@ -70,6 +70,11 @@ async function testChatGptEndpoint() {
         });
       }
 
+      // Add full JSON response output
+      console.log("\n=== FULL JSON RESPONSE ===");
+      console.log(JSON.stringify(response.data, null, 2));
+      console.log("=== END FULL JSON RESPONSE ===\n");
+
       return true;
     } else {
       console.error("❌ Unexpected response:");
