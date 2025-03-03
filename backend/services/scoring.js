@@ -274,6 +274,9 @@ function evaluateSkillsByStage(skills, maturityStage) {
         ? narrativeParts.join(" ")
         : "All skill clusters meet expected depth levels.";
 
+    // NEW: Generate depth analysis by reported depth level
+    const depthLevelAnalysis = populateDepthAnalysis(skills);
+
     const results = {
       gaps: calculateSkillGaps(skills, weights, scoringStage),
       score: calculateMaturityScore(skills, scoringStage),
@@ -284,6 +287,7 @@ function evaluateSkillsByStage(skills, maturityStage) {
         composite: compositeDepth, // new composite per-cluster scores
         overall: overallComposite, // overall composite score
         narrative: narrative,
+        byLevel: depthLevelAnalysis, // NEW: analysis by reported depth level
       },
     };
 
@@ -305,6 +309,32 @@ function evaluateSkillsByStage(skills, maturityStage) {
         composite: {},
         overall: 0.5,
         narrative: "Unable to analyze skill depths due to an error.",
+        byLevel: {
+          strategic: {
+            level: 1,
+            skills: [],
+            evidence: [],
+            narrative: "Error in depth analysis.",
+          },
+          managerial: {
+            level: 2,
+            skills: [],
+            evidence: [],
+            narrative: "Error in depth analysis.",
+          },
+          conversational: {
+            level: 3,
+            skills: [],
+            evidence: [],
+            narrative: "Error in depth analysis.",
+          },
+          executional: {
+            level: 4,
+            skills: [],
+            evidence: [],
+            narrative: "Error in depth analysis.",
+          },
+        },
       },
     };
   }
@@ -458,6 +488,113 @@ function calculateSkillGaps(skills, targetWeights, stage) {
   return gaps;
 }
 
+/**
+ * Categorizes skills by their reported depth levels and populates the depthAnalysis section
+ * @param {Object} skills - The skills object from the profile
+ * @returns {Object} The populated depthAnalysis object
+ */
+function populateDepthAnalysis(skills) {
+  // Initialize the depth analysis structure
+  const depthAnalysis = {
+    strategic: {
+      level: 1,
+      skills: [],
+      evidence: [],
+      narrative: "",
+    },
+    managerial: {
+      level: 2,
+      skills: [],
+      evidence: [],
+      narrative: "",
+    },
+    conversational: {
+      level: 3,
+      skills: [],
+      evidence: [],
+      narrative: "",
+    },
+    executional: {
+      level: 4,
+      skills: [],
+      evidence: [],
+      narrative: "",
+    },
+  };
+
+  // Map depth levels to their corresponding categories
+  const depthMap = {
+    1: "strategic",
+    2: "managerial",
+    3: "conversational",
+    4: "executional",
+  };
+
+  // Process each skill category and skill
+  Object.entries(skills).forEach(([category, skillSet]) => {
+    Object.entries(skillSet).forEach(([skillName, skillData]) => {
+      // Get the reported depth, defaulting to 1 if not present
+      const reportedDepth = skillData.reportedDepth || skillData.depth || 1;
+
+      // Get the corresponding depth category
+      const depthCategory = depthMap[reportedDepth];
+
+      if (depthCategory) {
+        // Add the skill to the appropriate depth level
+        depthAnalysis[depthCategory].skills.push({
+          name: skillName,
+          category: category,
+          score: skillData.score,
+        });
+
+        // Add evidence if available
+        if (skillData.evidence && skillData.evidence.length > 0) {
+          // Add up to 2 pieces of evidence per skill to avoid overwhelming the report
+          const relevantEvidence = skillData.evidence
+            .slice(0, 2)
+            .map((item) => `${skillName}: ${item}`);
+          depthAnalysis[depthCategory].evidence.push(...relevantEvidence);
+        }
+      }
+    });
+  });
+
+  // Generate narratives for each depth level
+  Object.keys(depthAnalysis).forEach((level) => {
+    const skillCount = depthAnalysis[level].skills.length;
+
+    if (skillCount === 0) {
+      depthAnalysis[
+        level
+      ].narrative = `No skills identified at ${level} level.`;
+    } else {
+      // Group skills by category for better narrative
+      const categoryCounts = {};
+      depthAnalysis[level].skills.forEach((skill) => {
+        categoryCounts[skill.category] =
+          (categoryCounts[skill.category] || 0) + 1;
+      });
+
+      // Create narrative based on skill categories
+      const categoryDescriptions = Object.entries(categoryCounts)
+        .map(([category, count]) => {
+          const categoryName = category
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase())
+            .replace(/Skills$/, "");
+          return `${count} ${categoryName} skills`;
+        })
+        .join(", ");
+
+      depthAnalysis[
+        level
+      ].narrative = `Demonstrates ${level} level proficiency in ${categoryDescriptions}.`;
+    }
+  });
+
+  return depthAnalysis;
+}
+
 module.exports = {
   calculateSkillGaps,
   calculateMaturityScore,
@@ -468,4 +605,5 @@ module.exports = {
   assessDepthLevels,
   validateSkillsStructure,
   computeCompositeDepthScores,
+  populateDepthAnalysis,
 };

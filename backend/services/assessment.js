@@ -216,6 +216,12 @@ async function handleAssessment(transcript) {
       skills,
       profile.maturity_stage.best_fit
     );
+
+    // Add depth analysis by level to the profile
+    if (scores.depthAnalysis && scores.depthAnalysis.byLevel) {
+      profile.depthAnalysis = scores.depthAnalysis.byLevel;
+    }
+
     const reports = generateReports(profile, scores);
 
     const endTotal = performance.now();
