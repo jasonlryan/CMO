@@ -533,6 +533,11 @@ function populateDepthAnalysis(skills) {
   // Process each skill category and skill
   Object.entries(skills).forEach(([category, skillSet]) => {
     Object.entries(skillSet).forEach(([skillName, skillData]) => {
+      // Skip skills with a score of 0 (not demonstrated or assessed)
+      if (skillData.score <= 0) {
+        return;
+      }
+
       // Get the reported depth, defaulting to 1 if not present
       const reportedDepth = skillData.reportedDepth || skillData.depth || 1;
 
@@ -586,9 +591,41 @@ function populateDepthAnalysis(skills) {
         })
         .join(", ");
 
-      depthAnalysis[
-        level
-      ].narrative = `Demonstrates ${level} level proficiency in ${categoryDescriptions}.`;
+      // Map level names to more descriptive terms and descriptions
+      const levelDescriptions = {
+        strategic: {
+          title: "Strategic (Level 1)",
+          description:
+            "deep expertise with ability to innovate and lead strategic initiatives",
+        },
+        managerial: {
+          title: "Managerial (Level 2)",
+          description:
+            "solid understanding with ability to manage and guide others",
+        },
+        conversational: {
+          title: "Conversational (Level 3)",
+          description:
+            "working knowledge sufficient to engage meaningfully in discussions",
+        },
+        executional: {
+          title: "Executional (Level 4)",
+          description:
+            "basic familiarity with ability to execute under guidance",
+        },
+      };
+
+      // Get top skills for this level (up to 3)
+      const topSkills = depthAnalysis[level].skills
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map((skill) => skill.name.replace(/_/g, " "))
+        .join(", ");
+
+      // Create a more detailed narrative
+      depthAnalysis[level].narrative =
+        `Demonstrates ${levelDescriptions[level].title} proficiency (${levelDescriptions[level].description}) in ${categoryDescriptions}. ` +
+        (topSkills ? `Notable strengths include ${topSkills}.` : "");
     }
   });
 
