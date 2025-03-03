@@ -5,7 +5,8 @@ FROM --platform=linux/amd64 node:18-alpine AS builder
 WORKDIR /app
 
 # Copy package files first for better caching
-COPY package*.json ./
+COPY package.json ./
+COPY package-lock.json ./
 
 # Install dependencies with production flag
 RUN npm ci --only=production
