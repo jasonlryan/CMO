@@ -14,11 +14,13 @@ frontend/**/*
 !backend/**/*.js
 
 # Core files to keep
+!backend/**/*.js
 !backend/prompts/transcriptAnalysis.md
 !backend/prompts/promptLoader.js
 !backend/services/assessment.js
 !backend/services/openai.js
 !backend/templates/cmoProfile.js
+!backend/api/server.js
 !package.json
 
 
@@ -26,7 +28,7 @@ frontend/**/*
 backend/data/
 # backend/tests/  # Removed this line to allow tracking of backend/tests
 # backend/config/
-# backend/api/
+# backend/api/  # Commented out to allow tracking of backend/api
 backend/services/backups/
 
 # Exclude Vercel specific files

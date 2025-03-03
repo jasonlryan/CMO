@@ -34,7 +34,13 @@ Transcript -> Analysis -> Scoring -> JSON Response
     evidence_analysis,
     maturity_stage,
     assessment_notes,
-    qualitative_insights
+    qualitative_insights,
+    depthAnalysis: {
+      strategic: { level, skills, evidence, narrative },
+      managerial: { level, skills, evidence, narrative },
+      conversational: { level, skills, evidence, narrative },
+      executional: { level, skills, evidence, narrative }
+    }
   },
   scores: {
     gaps: {}, // Skill gaps by category
@@ -43,8 +49,11 @@ Transcript -> Analysis -> Scoring -> JSON Response
     capabilities: [], // Capability evaluation
     depthAnalysis: {} // Depth level analysis
   }
+  // Note: Reports are intentionally omitted to reduce response size
 }
 ```
+
+Note: The response has been streamlined compared to the regular API endpoint by omitting the reports section, which significantly reduces the response size while maintaining all the profile information needed for analysis.
 
 ## Important Rules
 
@@ -52,3 +61,4 @@ Transcript -> Analysis -> Scoring -> JSON Response
 2. NEVER touch the profile/report template generation
 3. Let the existing code handle the routing through analysis and scoring
 4. Only branch logic based on `ENABLE_CHATGPT_ENDPOINT=true`
+5. Keep the response size minimal by only including essential data

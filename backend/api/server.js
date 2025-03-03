@@ -198,11 +198,13 @@ if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
         }
 
         console.log("[ChatGPT Endpoint] Assessment successful");
-        // Return successful response (same format as regular endpoint)
+        // Return successful response with only profile data and scores, omitting reports to reduce size
         return res.json({
-          data: result.profile,
+          status: "success",
+          profile: result.profile,
           scores: result.scores,
-          reports: result.reports,
+          // Commenting out reports to reduce response size
+          // reports: result.reports,
         });
       } catch (error) {
         console.error("[ChatGPT Endpoint] Assessment failed:", error);
