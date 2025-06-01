@@ -52,7 +52,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(cors());
 
 // Routes
-app.post("/api/assessment", async (req, res) => {
+app.post("/assessment", async (req, res) => {
   try {
     // Start timing
     const startTime = Date.now();
@@ -102,7 +102,7 @@ app.post("/api/assessment", async (req, res) => {
   }
 });
 
-app.get("/api/reports/:id", async (req, res) => {
+app.get("/reports/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (!supabase) {
@@ -125,7 +125,7 @@ app.get("/api/reports/:id", async (req, res) => {
   }
 });
 
-app.get("/api/profiles/:id", async (req, res) => {
+app.get("/profiles/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (!supabase) {
@@ -149,7 +149,7 @@ app.get("/api/profiles/:id", async (req, res) => {
 });
 
 // Add health check endpoint
-app.get("/api/health", (req, res) => {
+app.get("/health", (req, res) => {
   // Get Supabase connection status
   const supabaseStatus = getSupabaseStatus();
 
@@ -163,7 +163,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-app.get("/api/assessments", async (req, res) => {
+app.get("/assessments", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("assessments")
@@ -203,10 +203,10 @@ if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
   };
 
   // Add an explicit OPTIONS handler for preflight requests
-  app.options("/api/chatgpt/assessment", cors(chatGptCorsOptions));
+  app.options("/chatgpt/assessment", cors(chatGptCorsOptions));
 
   app.post(
-    "/api/chatgpt/assessment",
+    "/chatgpt/assessment",
     cors(chatGptCorsOptions),
     async (req, res) => {
       try {
@@ -278,9 +278,7 @@ if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
       }
     }
   );
-  console.log(
-    "✓ ChatGPT integration endpoint enabled at /api/chatgpt/assessment"
-  );
+  console.log("✓ ChatGPT integration endpoint enabled at /chatgpt/assessment");
 } else {
   console.log("ℹ️ ChatGPT integration endpoint disabled");
 }
