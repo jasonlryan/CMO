@@ -89,7 +89,7 @@ The CMO Assessment Tool includes a ChatGPT integration for analyzing interview t
 
 3. For detailed setup instructions, see `docs/chatgpt_setup_instructions.md`
 
-For complete documentation, see:
+For complete documentation, see `docs/README.md`. Key documents include:
 
 - `docs/MASTER_PLAN.md`
 - `docs/spec/ui_integration_guide.md`
