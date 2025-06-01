@@ -4,15 +4,18 @@ This document provides step-by-step instructions for setting up and testing the 
 
 ## 1. Backend Setup
 
-The backend already includes the necessary endpoint for ChatGPT integration. By default, it's enabled, but you can disable it by setting an environment variable if needed.
+The backend includes a dedicated server implementation for ChatGPT integration. The integration is controlled by the `ENABLE_CHATGPT_ENDPOINT` environment variable.
 
 ### Configuration Options
 
-Add these to your `.env` file if you want to change the default settings:
+Add these to your `.env` file:
 
 ```
 # ChatGPT Integration (enabled by default)
 ENABLE_CHATGPT_ENDPOINT=true
+
+# Optional: Enable cloud logging for performance metrics
+ENABLE_CLOUD_LOGGING=false
 ```
 
 ### Testing the Endpoint
@@ -27,7 +30,7 @@ npm run dev:backend
 npm run test:chatgpt
 ```
 
-If successful, you should see a response with assessment data.
+If successful, you should see a response with assessment data and timing information in the console.
 
 ## 2. Creating the Custom GPT
 
@@ -97,8 +100,8 @@ Be helpful and professional. If users have follow-up questions about specific as
 
    - Click "Configure"
    - Select "Authentication: None"
-   - Set "API server URL" to `http://localhost:3000` (for local testing)
-   - Upload the OpenAPI schema file or copy-paste its contents
+   - Set "API server URL" to your deployment URL (default: `https://cmo-135405620426.europe-west1.run.app`)
+   - Upload the OpenAPI schema file from `backend/api/chatgpt-openapi.json` or copy-paste its contents
 
 6. **Test and Save**
    - Test the GPT with a sample transcript
@@ -109,7 +112,11 @@ Be helpful and professional. If users have follow-up questions about specific as
 1. Start your backend server:
 
    ```bash
+   # For local development
    npm run dev:backend
+
+   # For production
+   npm run start:backend
    ```
 
 2. Open your Custom GPT in ChatGPT
@@ -122,6 +129,24 @@ Be helpful and professional. If users have follow-up questions about specific as
 
 4. The GPT will call your API endpoint and format the results
 
+## Performance Considerations
+
+The ChatGPT integration includes several performance optimizations:
+
+1. **Response Caching**
+
+   - Responses are cached for 1 hour to improve performance for repeated requests
+   - Cache is automatically cleaned up to prevent memory leaks
+
+2. **Compression**
+
+   - Response compression is enabled in production mode
+   - Compression threshold is set to 1KB to avoid overhead for small responses
+
+3. **Performance Logging**
+   - Request processing times are logged to the console
+   - Optional Google Cloud Logging integration for production monitoring
+
 ## Troubleshooting
 
 If you encounter issues:
@@ -129,20 +154,24 @@ If you encounter issues:
 1. **Connection Refused**
 
    - Ensure your backend server is running
-   - Verify you can access http://localhost:3000/api/health in your browser
+   - Verify you can access the health endpoint in your browser
+   - For local testing: http://localhost:3000/health
 
 2. **Invalid Response Format**
 
    - Check the server logs for errors
    - Ensure your transcript is provided as complete text
+   - Verify the OpenAPI schema matches your endpoint implementation
 
 3. **Feature Disabled**
-   - Check your `.env` file to ensure the endpoint is enabled
+   - Check your `.env` file to ensure `ENABLE_CHATGPT_ENDPOINT=true`
+   - Restart the server after changing environment variables
 
 ## Deployment Notes
 
 For production deployment:
 
-1. Update the OpenAPI schema with your production URL
-2. Ensure your server's CORS settings allow requests from ChatGPT
-3. Consider adding authentication to your production endpoint
+1. The OpenAPI schema is already configured with the production URL (`https://cmo-135405620426.europe-west1.run.app`)
+2. CORS is enabled by default to allow requests from ChatGPT
+3. Consider enabling Google Cloud Logging for performance monitoring in production
+4. For additional security, consider adding authentication to your production endpoint

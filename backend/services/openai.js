@@ -9,6 +9,8 @@ const {
   errorLog,
   timeLog,
 } = require("../config/logging");
+const path = require("path");
+const fs = require("fs");
 
 // Helper to validate skills structure
 function validateSkills(skills) {
@@ -300,6 +302,126 @@ const openaiService = {
       errorLog("OpenAI analysis failed:", error);
       throw error;
     }
+  },
+
+  async analyzeForm(formData) {
+    infoLog("Starting form analysis...");
+    debugLog("Form data structure:", {
+      sections: formData.sections.length,
+      type: formData.type,
+      submission_id: formData.submission_id,
+    });
+
+    try {
+      // Fetch the form analysis prompt
+      const promptPath = path.join(__dirname, "../prompts/formAnalysis.md");
+      let systemPrompt;
+
+      if (fs.existsSync(promptPath)) {
+        systemPrompt = fs.readFileSync(promptPath, "utf8");
+      } else {
+        // Fall back to transcript prompt if form prompt doesn't exist yet
+        warnLog("Form analysis prompt not found, using transcript prompt");
+        systemPrompt = fs.readFileSync(
+          path.join(__dirname, "../prompts/transcriptAnalysis.md"),
+          "utf8"
+        );
+      }
+
+      // Format the form data for analysis
+      const formattedFormData = this.formatFormData(formData);
+
+      // Fetch depth levels for reference
+      const depthLevelsPath = path.join(
+        __dirname,
+        "../config/depthLevels.json"
+      );
+      const depthLevels = JSON.parse(fs.readFileSync(depthLevelsPath, "utf8"));
+
+      // Build messages array
+      const messages = [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: `Analyze this form submission: ${formattedFormData}`,
+        },
+      ];
+
+      // Add depth level reference if needed
+      messages.push({
+        role: "system",
+        content: `Here are the depth level definitions for reference: ${JSON.stringify(
+          depthLevels,
+          null,
+          2
+        )}`,
+      });
+
+      // Time the API call
+      const startApi = performance.now();
+      debugLog("Starting OpenAI API call...");
+
+      // Make API call
+      const response = await openAIClient.chat.completions.create({
+        model: CONFIG.gptModel,
+        messages,
+        temperature: 0.2,
+        max_tokens: 2500,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      });
+
+      // Log API call timing
+      timeLog("OpenAI API call", performance.now() - startApi);
+
+      // Process response to extract structured data
+      debugLog("Received response from OpenAI");
+      const content = response.choices[0].message.content;
+
+      // Extract JSON from response
+      try {
+        // Find JSON in the content
+        const jsonMatch =
+          content.match(/```json\s*([\s\S]*?)\s*```/) ||
+          content.match(/{[\s\S]*}/);
+
+        const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : content;
+
+        // Parse JSON
+        const parsedData = JSON.parse(jsonString.trim());
+        debugLog("Successfully parsed response JSON");
+        return parsedData;
+      } catch (parseError) {
+        errorLog("Failed to parse GPT response:", parseError);
+        errorLog("Raw content:", content);
+        throw new Error("Failed to parse GPT response: " + parseError.message);
+      }
+    } catch (error) {
+      errorLog("Form analysis failed:", error);
+      throw error;
+    }
+  },
+
+  formatFormData: function (formData) {
+    let formatted = `Form Submission ID: ${formData.submission_id}\n`;
+    formatted += `Timestamp: ${formData.timestamp}\n\n`;
+
+    formatted += "## Form Responses\n\n";
+
+    formData.sections.forEach((section) => {
+      formatted += `### ${section.title}\n\n`;
+
+      section.questions.forEach((question) => {
+        formatted += `**Q${question.number}: ${question.title}**\n`;
+        formatted += `A: ${question.response || "No response provided"}\n\n`;
+      });
+    });
+
+    return formatted;
   },
 };
 

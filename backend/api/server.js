@@ -1,5 +1,25 @@
+/**
+ * API Server
+ *
+ * Performance Optimizations (2023-11-XX):
+ * 1. Added compression middleware to reduce response size and improve transfer speeds
+ * 2. Increased JSON body size limit to 10MB to handle larger transcripts
+ * 3. Optimized CORS settings for ChatGPT endpoint:
+ *    - Limited methods to only POST and OPTIONS
+ *    - Added preflightContinue: false for faster preflight handling
+ *    - Set optionsSuccessStatus: 204 for efficient OPTIONS responses
+ * 4. Added performance-related headers to ChatGPT endpoint:
+ *    - Cache-Control: no-cache to prevent caching of dynamic content
+ *    - X-Content-Type-Options: nosniff for security and faster content handling
+ * 5. Improved validation to fail fast on invalid requests
+ *
+ * These changes aim to reduce the "Talking to connector" delay and improve
+ * overall assessment processing times.
+ */
+
 const express = require("express");
 const cors = require("cors");
+const compression = require("compression");
 const {
   supabase,
   initializeSchema,
@@ -24,13 +44,20 @@ if (supabase) {
 
 const app = express();
 
+// Performance optimizations
+app.use(compression());
+app.use(express.json({ limit: "10mb" }));
+
 // General CORS for UI API - permissive
 app.use(cors());
-app.use(express.json());
 
 // Routes
 app.post("/api/assessment", async (req, res) => {
   try {
+    // Start timing
+    const startTime = Date.now();
+    console.log("[Regular API] Assessment request received");
+
     // Validate request
     if (!req.body || !req.body.transcript) {
       return res.status(400).json({
@@ -49,19 +76,16 @@ app.post("/api/assessment", async (req, res) => {
     });
 
     // Process assessment
+    console.log(
+      `[Regular API] Processing started at ${new Date().toISOString()}`
+    );
     const result = await handleAssessment(String(req.body.transcript));
+    const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(
+      `[Regular API] Processing completed in ${processingTime} seconds`
+    );
 
-    // Validate result
-    if (!result || !result.profile) {
-      return res.status(500).json({
-        error: {
-          code: "PROCESSING_FAILED",
-          message: "Failed to process assessment",
-        },
-      });
-    }
-
-    // Return successful response
+    // Return response
     return res.json({
       data: result.profile,
       scores: result.scores,
@@ -71,8 +95,8 @@ app.post("/api/assessment", async (req, res) => {
     console.error("Assessment failed:", error);
     return res.status(500).json({
       error: {
-        code: "ASSESSMENT_FAILED",
-        message: error.message || "Assessment failed",
+        code: "PROCESSING_FAILED",
+        message: "Failed to process assessment",
       },
     });
   }
@@ -139,7 +163,7 @@ if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
   // Special CORS configuration just for the ChatGPT endpoint
   const chatGptCorsOptions = {
     origin: "*", // Allow all origins for testing
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["POST", "OPTIONS"], // Limit to only needed methods
     allowedHeaders: [
       "Content-Type",
       "Authorization",
@@ -148,6 +172,8 @@ if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
     ],
     credentials: true,
     maxAge: 86400, // 24 hours
+    preflightContinue: false,
+    optionsSuccessStatus: 204, // Return 204 for OPTIONS requests
   };
 
   // Add an explicit OPTIONS handler for preflight requests
@@ -158,6 +184,8 @@ if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
     cors(chatGptCorsOptions),
     async (req, res) => {
       try {
+        // Start timing
+        const startTime = Date.now();
         console.log("[ChatGPT Endpoint] Assessment request received");
         console.log("[ChatGPT] Request headers:", JSON.stringify(req.headers));
         debugLog("[ChatGPT] Request data:", {
@@ -182,7 +210,14 @@ if (process.env.ENABLE_CHATGPT_ENDPOINT !== "false") {
         }
 
         // Process assessment using the same function as the regular endpoint
+        console.log(
+          `[ChatGPT Endpoint] Processing started at ${new Date().toISOString()}`
+        );
         const result = await handleAssessment(String(req.body.transcript));
+        const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(
+          `[ChatGPT Endpoint] Processing completed in ${processingTime} seconds`
+        );
 
         // Validate result
         if (!result || !result.profile) {

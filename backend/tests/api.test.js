@@ -3,12 +3,16 @@ const path = require("path");
 const axios = require("axios");
 const { handleAssessment } = require("../services/assessment");
 const { analyzeTranscript } = require("../services/openai");
+const { logTestResult } = require("./testTimingsLogger");
 
 const API_URL = "http://localhost:3000/api";
 const TRANSCRIPT_PATH = path.join(__dirname, "../../docs/transcript.txt");
 
 async function testEndpoints() {
   try {
+    // Start timing
+    const startTime = Date.now();
+
     // Load actual transcript data
     const transcript = fs.readFileSync(TRANSCRIPT_PATH, "utf-8");
 
@@ -50,9 +54,16 @@ async function testEndpoints() {
     console.log("\nTesting GET /api/profiles/:id");
     const profileResponse = await axios.get(`${API_URL}/profiles/123`);
     console.log("Profile Response:", profileResponse.data);
+
+    // End timing and log result
+    const duration = Date.now() - startTime;
+    logTestResult("API Test", "success", duration);
+    console.log(`\nTest duration: ${duration}ms`);
   } catch (error) {
+    // Log failure
+    logTestResult("API Test", "failure", 0);
     console.error("Test failed:", error.message);
-    throw error;
+    process.exit(1);
   }
 }
 

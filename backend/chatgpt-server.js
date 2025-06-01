@@ -8,6 +8,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { handleAssessment } = require("./services/assessment");
+const path = require("path");
+const fs = require("fs");
 
 // Simple in-memory cache
 const cache = new Map();
@@ -84,33 +86,126 @@ function logPerformanceMetric(metric, value, metadata = {}) {
   }
 }
 
+// Ensure necessary directories exist
+function ensureDirectoriesExist() {
+  const dirs = [
+    path.join(__dirname, "data", "qresponses"),
+    path.join(__dirname, "data", "qresponses", "raw_json"),
+  ];
+
+  dirs.forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      console.log(`Creating directory: ${dir}`);
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+
+  // Ensure CSV header exists
+  const csvPath = path.join(__dirname, "data", "qresponses", "forms.csv");
+  if (!fs.existsSync(csvPath) || fs.statSync(csvPath).size === 0) {
+    const header =
+      "timestamp,submission_id,section,question_number,question_title,response\n";
+    fs.writeFileSync(csvPath, header);
+    console.log("Created forms.csv with header");
+  }
+}
+
+// Call to ensure directories exist when server starts
+ensureDirectoriesExist();
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", service: "chatgpt-only" });
 });
 
+// Handle form data storage
+function storeFormData(formData) {
+  try {
+    // Generate timestamp for filenames
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const submissionId = formData.submission_id || `FORM-${Date.now()}`;
+
+    // Save complete form data as JSON
+    const jsonPath = path.join(
+      __dirname,
+      "data",
+      "qresponses",
+      "raw_json",
+      `form_${timestamp}_${submissionId}.json`
+    );
+    fs.writeFileSync(jsonPath, JSON.stringify(formData, null, 2));
+    console.log(`[Form Data] Saved JSON to ${jsonPath}`);
+
+    // Extract individual questions and append to CSV
+    const csvPath = path.join(__dirname, "data", "qresponses", "forms.csv");
+
+    // Process each section and its questions
+    formData.sections.forEach((section) => {
+      section.questions.forEach((question) => {
+        // Escape quotes in text fields
+        const safeTitle = question.title.replace(/"/g, '""');
+        const safeResponse = question.response.replace(/"/g, '""');
+
+        // Create CSV line
+        const csvLine = `"${timestamp}","${submissionId}","${section.title}","${question.number}","${safeTitle}","${safeResponse}"\n`;
+        fs.appendFileSync(csvPath, csvLine);
+      });
+    });
+
+    console.log(`[Form Data] Appended to CSV: ${csvPath}`);
+    return true;
+  } catch (error) {
+    console.error("[Form Data] Storage error:", error);
+    return false;
+  }
+}
+
 // ChatGPT assessment endpoint
 app.post("/api/chatgpt/assessment", async (req, res) => {
   try {
     console.log("[ChatGPT Server] Request received");
+    console.log("[DEBUG] Request body keys:", Object.keys(req.body));
     const startTime = Date.now();
 
-    // Validate request
-    if (!req.body || !req.body.transcript) {
-      console.log("[ChatGPT Server] Missing transcript in request body");
+    // Validate request - check for either transcript or form
+    if (!req.body || (!req.body.transcript && !req.body.form)) {
+      console.log("[DEBUG] Invalid request body:", req.body);
       return res.status(400).json({
         error: {
           code: "INVALID_REQUEST",
-          message: "Missing transcript in request body",
+          message: "Request must include either transcript or form data",
         },
       });
     }
 
-    // Generate cache key from transcript
-    const transcript = String(req.body.transcript);
+    // Determine input type and extract data
+    const input_type = req.body.form ? "form" : "transcript";
+    let input_data;
+
+    if (input_type === "form") {
+      // Handle form data
+      const formData = req.body.form;
+      console.log("[ChatGPT Server] Processing form data");
+
+      // Store form data before processing
+      const storageSuccess = storeFormData(formData);
+      if (!storageSuccess) {
+        console.warn(
+          "[ChatGPT Server] Form data storage failed, continuing with processing"
+        );
+      }
+
+      input_data = formData;
+    } else {
+      // Handle transcript
+      input_data = String(req.body.transcript);
+      console.log("[ChatGPT Server] Processing transcript");
+    }
+
+    // Generate cache key based on input type and data
     const cacheKey = require("crypto")
       .createHash("md5")
-      .update(transcript)
+      .update(JSON.stringify({ type: input_type, data: input_data }))
       .digest("hex");
 
     // Check cache
@@ -123,10 +218,13 @@ app.post("/api/chatgpt/assessment", async (req, res) => {
           `[ChatGPT Server] Request processed in ${processingTime}ms (cached)`
         );
 
+        // Set cache header
+        res.setHeader("X-Cache", "HIT");
+
         // Log cache hit performance
         logPerformanceMetric("request_processing_time", processingTime, {
           cached: true,
-          transcript_length: transcript.length,
+          input_type,
         });
 
         return res.status(200).json(cachedEntry.data);
@@ -136,9 +234,17 @@ app.post("/api/chatgpt/assessment", async (req, res) => {
       }
     }
 
-    // Process assessment
-    console.log("[ChatGPT Server] Starting assessment process...");
-    const result = await handleAssessment(transcript);
+    // Set cache header for misses
+    res.setHeader("X-Cache", "MISS");
+
+    // Process assessment with input type flag
+    console.log(
+      `[ChatGPT Server] Starting ${input_type} assessment process...`
+    );
+    const result = await handleAssessment({
+      data: input_data,
+      input_type,
+    });
 
     // Validate result
     if (!result || !result.profile) {
@@ -151,6 +257,9 @@ app.post("/api/chatgpt/assessment", async (req, res) => {
       });
     }
 
+    // Add input type to result
+    result.input_type = input_type;
+
     // Cache the result
     cache.set(cacheKey, {
       timestamp: Date.now(),
@@ -160,13 +269,13 @@ app.post("/api/chatgpt/assessment", async (req, res) => {
     // Return successful response
     const totalProcessingTime = Date.now() - startTime;
     console.log(
-      `[ChatGPT Server] Assessment successful in ${totalProcessingTime}ms`
+      `[ChatGPT Server] ${input_type} assessment successful in ${totalProcessingTime}ms`
     );
 
     // Log performance metrics
     logPerformanceMetric("request_processing_time", totalProcessingTime, {
       cached: false,
-      transcript_length: transcript.length,
+      input_type,
     });
 
     return res.status(200).json(result);

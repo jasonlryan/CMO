@@ -5,6 +5,8 @@
     "test:api": "ENABLE_CHATGPT_ENDPOINT=false node backend/tests/api.test.js",
     "test:all": "concurrently \"npm run test\" \"npm run test:api\"",
     "test:chatgpt": "ENABLE_CHATGPT_ENDPOINT=true node backend/tests/chatgpt-endpoint.test.js",
+    "test:chatgpt:transcript": "ENABLE_CHATGPT_ENDPOINT=true node backend/tests/chatgpt-transcript.test.js",
+    "test:chatgpt:form": "ENABLE_CHATGPT_ENDPOINT=true node backend/tests/chatgpt-form.test.js",
     "kill-ports": "sudo kill-port 3000 || true",
     "predev": "npm run kill-ports",
     "dev:frontend": "cd frontend && npm run dev",

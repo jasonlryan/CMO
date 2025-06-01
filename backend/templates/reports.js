@@ -101,6 +101,10 @@ function generateReports(profile, scores) {
             raw: data.score,
             adjusted: data.scores ? data.scores.adjusted : data.score,
             depth: data.depth,
+            expectedDepth:
+              scores.depthAnalysis.perSkill?.hardSkills?.[skill]
+                ?.expectedDepth || 1,
+            gap: scores.depthAnalysis.perSkill?.hardSkills?.[skill]?.gap || 0,
             evidence: data.evidence,
           },
           gap:
@@ -115,6 +119,10 @@ function generateReports(profile, scores) {
           raw: data.score,
           adjusted: data.scores ? data.scores.adjusted : data.score,
           depth: data.depth,
+          expectedDepth:
+            scores.depthAnalysis.perSkill?.softSkills?.[skill]?.expectedDepth ||
+            1,
+          gap: scores.depthAnalysis.perSkill?.softSkills?.[skill]?.gap || 0,
           evidence: data.evidence,
         },
         gap:
@@ -129,6 +137,12 @@ function generateReports(profile, scores) {
             raw: data.score,
             adjusted: data.scores ? data.scores.adjusted : data.score,
             depth: data.depth,
+            expectedDepth:
+              scores.depthAnalysis.perSkill?.leadershipSkills?.[skill]
+                ?.expectedDepth || 1,
+            gap:
+              scores.depthAnalysis.perSkill?.leadershipSkills?.[skill]?.gap ||
+              0,
             evidence: data.evidence,
           },
           gap:
@@ -144,6 +158,12 @@ function generateReports(profile, scores) {
             raw: data.score,
             adjusted: data.scores ? data.scores.adjusted : data.score,
             depth: data.depth,
+            expectedDepth:
+              scores.depthAnalysis.perSkill?.commercialAcumen?.[skill]
+                ?.expectedDepth || 1,
+            gap:
+              scores.depthAnalysis.perSkill?.commercialAcumen?.[skill]?.gap ||
+              0,
             evidence: data.evidence,
           },
           gap:

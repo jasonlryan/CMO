@@ -1,3 +1,17 @@
+/**
+ * Assessment Service
+ *
+ * Performance Optimizations (2023-11-XX):
+ * 1. Updated handleAssessment function to accept an object parameter with:
+ *    - data: The text or object to analyze
+ *    - input_type: The type of input ("transcript" or "form")
+ *    - options: Configuration options
+ * 2. Maintained backward compatibility with string parameter for transcript
+ *
+ * These changes support the optimized ChatGPT endpoint while ensuring
+ * compatibility with existing code.
+ */
+
 const { openaiService } = require("./openai");
 const { evaluateSkillsByStage } = require("./scoring");
 const { CMO_PROFILE_TEMPLATE } = require("../templates/cmoProfile");
@@ -34,6 +48,19 @@ function getValidCluster(cluster, defaultCluster) {
         ? {
             score: skillData.score,
             reportedDepth: skillData.reportedDepth,
+            expectedDepth:
+              skillData.expectedDepth ||
+              defaultCluster[skillName].expectedDepth ||
+              1,
+            gap:
+              skillData.gap !== undefined
+                ? skillData.gap
+                : Math.max(
+                    0,
+                    (skillData.expectedDepth ||
+                      defaultCluster[skillName].expectedDepth ||
+                      1) - skillData.reportedDepth
+                  ),
             evidence: skillData.evidence || [],
           }
         : {
@@ -161,13 +188,46 @@ function createProfile(analysis) {
 // Alias for backward compatibility
 const calculateScores = evaluateSkillsByStage;
 
-async function handleAssessment(transcript) {
+// Function that accepts either a string (transcript) or an object with data and options
+async function handleAssessment(input) {
   try {
     infoLog("Starting assessment...");
     const startTotal = performance.now();
 
-    // Core operations
-    const analysis = await openaiService.analyze(transcript);
+    // Parse input formats (string or object with options)
+    let data,
+      input_type = "transcript",
+      options = {};
+
+    if (typeof input === "string") {
+      // Legacy format: transcript string
+      data = input;
+    } else if (typeof input === "object") {
+      // New format: { data, input_type, options }
+      data = input.data;
+      input_type = input.input_type || "transcript";
+      options = input.options || {};
+    } else {
+      throw new Error("Invalid input format for assessment");
+    }
+
+    // Log start of OpenAI analysis
+    infoLog(`Starting OpenAI analysis for ${input_type}...`);
+    const analysisStart = performance.now();
+
+    // Core operations - analyze either transcript or form
+    let analysis;
+    if (input_type === "form") {
+      analysis = await openaiService.analyzeForm(data);
+    } else {
+      analysis = await openaiService.analyze(data);
+    }
+
+    // Log completion of OpenAI analysis
+    const analysisTime = performance.now() - analysisStart;
+    infoLog(
+      `OpenAI analysis completed in ${(analysisTime / 1000).toFixed(2)}s`
+    );
 
     // Normalize the analysis structure immediately to ensure valid skills structure
     // This prevents the "Cannot read properties of undefined (reading 'hardSkills')" error
@@ -196,7 +256,13 @@ async function handleAssessment(transcript) {
       };
     }
 
+    // Log start of profile creation
+    const profileStart = performance.now();
     const profile = createProfile(analysis);
+    const profileTime = performance.now() - profileStart;
+    infoLog(
+      `Profile creation completed in ${(profileTime / 1000).toFixed(2)}s`
+    );
 
     // Preserve categorical structure
     const skills = {
@@ -211,21 +277,60 @@ async function handleAssessment(transcript) {
       sampleSkill: skills.hardSkills.marketing_strategy,
     });
 
+    // Log start of scoring
+    const scoringStart = performance.now();
     // Pass structured skills to scoring
     const scores = evaluateSkillsByStage(
       skills,
       profile.maturity_stage.best_fit
     );
+    const scoringTime = performance.now() - scoringStart;
+    infoLog(`Scoring completed in ${(scoringTime / 1000).toFixed(2)}s`);
 
     // Add depth analysis by level to the profile
     if (scores.depthAnalysis && scores.depthAnalysis.byLevel) {
       profile.depthAnalysis = scores.depthAnalysis.byLevel;
     }
 
+    // Log start of report generation
+    const reportsStart = performance.now();
     const reports = generateReports(profile, scores);
+    const reportsTime = performance.now() - reportsStart;
+    infoLog(
+      `Report generation completed in ${(reportsTime / 1000).toFixed(2)}s`
+    );
 
     const endTotal = performance.now();
-    timeLog("Assessment complete", endTotal - startTotal);
+    const totalTime = endTotal - startTotal;
+    timeLog("Assessment complete", totalTime);
+
+    // Log detailed timing breakdown
+    console.log("Assessment timing breakdown:");
+    console.log(
+      `- OpenAI Analysis: ${(analysisTime / 1000).toFixed(2)}s (${(
+        (analysisTime / totalTime) *
+        100
+      ).toFixed(1)}%)`
+    );
+    console.log(
+      `- Profile Creation: ${(profileTime / 1000).toFixed(2)}s (${(
+        (profileTime / totalTime) *
+        100
+      ).toFixed(1)}%)`
+    );
+    console.log(
+      `- Scoring: ${(scoringTime / 1000).toFixed(2)}s (${(
+        (scoringTime / totalTime) *
+        100
+      ).toFixed(1)}%)`
+    );
+    console.log(
+      `- Report Generation: ${(reportsTime / 1000).toFixed(2)}s (${(
+        (reportsTime / totalTime) *
+        100
+      ).toFixed(1)}%)`
+    );
+    console.log(`- Total: ${(totalTime / 1000).toFixed(2)}s`);
 
     // Save outputs with timestamp
     saveOutputs(
@@ -260,6 +365,7 @@ async function handleAssessment(transcript) {
       scores,
       reports,
       timing: endTotal - startTotal,
+      input_type, // Add input type to the response
     };
   } catch (error) {
     errorLog("Assessment failed:", error);

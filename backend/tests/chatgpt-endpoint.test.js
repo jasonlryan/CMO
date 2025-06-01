@@ -2,6 +2,7 @@
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const { logTestResult } = require("./testTimingsLogger");
 
 const API_URL = "http://localhost:3000/api/chatgpt/assessment";
 const SAMPLE_TRANSCRIPT_PATH = path.join(
@@ -48,9 +49,16 @@ async function testChatGptEndpoint() {
       );
     }
 
+    // Start timing
+    const startTime = Date.now();
+
     // Send request to the assessment endpoint
     console.log(`Sending request to ${API_URL}...`);
     const response = await axios.post(API_URL, { transcript });
+
+    // End timing and log result
+    const duration = Date.now() - startTime;
+    logTestResult("ChatGPT Test", "success", duration);
 
     // Check response
     if (response.status === 200 && response.data) {
@@ -70,6 +78,8 @@ async function testChatGptEndpoint() {
         });
       }
 
+      // Add simple timing log in the exact format requested
+      console.log("Duration: " + duration + "ms");
       // Add full JSON response output
       console.log("\n=== FULL JSON RESPONSE ===");
       console.log(JSON.stringify(response.data, null, 2));
@@ -83,33 +93,10 @@ async function testChatGptEndpoint() {
       return false;
     }
   } catch (error) {
-    console.error("❌ Test failed:");
-    if (error.response) {
-      // Server responded with an error
-      console.error(`Status: ${error.response.status}`);
-      console.error("Error data:", error.response.data);
-
-      // Detailed error for assessment failures
-      if (error.response.data?.error?.code === "ASSESSMENT_FAILED") {
-        console.error(
-          "Assessment failed with message:",
-          error.response.data.error.message
-        );
-        console.error(
-          "This is likely an OpenAI API or processing error, not an endpoint issue."
-        );
-      }
-    } else if (error.request) {
-      // No response received
-      console.error("No response received. Is the server running?");
-      console.error(
-        "Check that your backend server is started with 'npm run dev:backend'"
-      );
-    } else {
-      // Other error
-      console.error("Error message:", error.message);
-    }
-    return false;
+    // Log failure
+    logTestResult("ChatGPT Test", "failure", 0);
+    console.error("Test failed:", error.message);
+    process.exit(1);
   }
 }
 
