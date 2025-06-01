@@ -12,6 +12,13 @@ const {
 const path = require("path");
 const fs = require("fs");
 
+// Reusable OpenAI client and default model
+const openAIClient = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
 // Helper to validate skills structure
 function validateSkills(skills) {
   // Debug validation input
@@ -152,20 +159,18 @@ const openaiService = {
       infoLog("Starting stage: OpenAI");
       const startApi = performance.now();
 
-      // Log the API key being used (first few characters only for security)
-      const apiKey = process.env.OPENAI_API_KEY;
-      if (!apiKey) {
+      // Verify API key is present once at startup
+      if (!process.env.OPENAI_API_KEY) {
         errorLog("No OpenAI API key found in environment variables");
         throw new Error(
           "Missing OpenAI API key. Please set OPENAI_API_KEY in your .env file."
         );
       }
 
-      debugLog("Using API key starting with:", apiKey.substring(0, 10) + "...");
-
-      const openai = new OpenAI({
-        apiKey: apiKey,
-      });
+      debugLog(
+        "Using API key starting with:",
+        process.env.OPENAI_API_KEY.substring(0, 10) + "..."
+      );
 
       // Debug transcript type and content
       debugLog("OpenAI Input:", {
@@ -175,8 +180,8 @@ const openaiService = {
         sample: transcript?.substring(0, 100),
       });
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+      const completion = await openAIClient.chat.completions.create({
+        model: DEFAULT_MODEL,
         messages: [
           { role: "system", content: ANALYSIS_PROMPT },
           { role: "user", content: transcript },
@@ -366,7 +371,7 @@ const openaiService = {
 
       // Make API call
       const response = await openAIClient.chat.completions.create({
-        model: CONFIG.gptModel,
+        model: DEFAULT_MODEL,
         messages,
         temperature: 0.2,
         max_tokens: 2500,

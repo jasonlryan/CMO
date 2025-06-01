@@ -105,20 +105,46 @@ app.post("/api/assessment", async (req, res) => {
 app.get("/api/reports/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    // TODO: Implement report fetch
-    res.json({ message: "Report endpoint ready" });
+    if (!supabase) {
+      return res.status(500).json({ error: "Supabase client not configured" });
+    }
+
+    const { data, error } = await supabase
+      .from("reports")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: "Report not found" });
+
+    res.json({ data });
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch report" });
+    console.error("Failed to fetch report:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch report" });
   }
 });
 
 app.get("/api/profiles/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    // TODO: Implement profile fetch
-    res.json({ message: "Profile endpoint ready" });
+    if (!supabase) {
+      return res.status(500).json({ error: "Supabase client not configured" });
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: "Profile not found" });
+
+    res.json({ data });
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch profile" });
+    console.error("Failed to fetch profile:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch profile" });
   }
 });
 

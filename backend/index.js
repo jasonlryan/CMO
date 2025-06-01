@@ -11,7 +11,13 @@ const { exec } = require("child_process");
 const util = require("util");
 const execPromise = util.promisify(exec);
 
-console.log("Starting CMO Assessment Tool backend...");
+const VERBOSE_STARTUP = process.env.VERBOSE_STARTUP === "true";
+const ENABLE_PORT_CLEANUP = process.env.ENABLE_PORT_CLEANUP !== "false";
+
+const vlog = (...args) => {
+  if (VERBOSE_STARTUP) console.log(...args);
+};
+vlog("Starting CMO Assessment Tool backend...");
 
 // List of required environment variables
 const requiredEnvVars = [
@@ -28,7 +34,9 @@ if (missingVars.length > 0) {
     `Missing required environment variables: ${missingVars.join(", ")}`
   );
 }
-console.log("✓ Environment variables validated");
+if (VERBOSE_STARTUP) {
+  vlog("✓ Environment variables validated");
+}
 
 // Check if Supabase connection is enabled
 if (process.env.SUPABASE_CONNECT === "TRUE") {
@@ -39,7 +47,9 @@ if (process.env.SUPABASE_CONNECT === "TRUE") {
       process.env.SUPABASE_PROJECT_URL,
       process.env.SUPABASE_ANON_KEY
     );
-    console.log("✓ Supabase client initialized");
+    if (VERBOSE_STARTUP) {
+      vlog("✓ Supabase client initialized");
+    }
   } catch (error) {
     console.error("❌ Failed to initialize Supabase client:", error);
     process.exit(1);
@@ -59,7 +69,7 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Function to check if port 3000 is in use and kill the process if needed
 const freeUpPort = async (port) => {
   try {
-    console.log(`Checking if port ${port} is in use...`);
+    vlog(`Checking if port ${port} is in use...`);
 
     // Command to find process using port 3000
     const findCommand =
@@ -70,7 +80,7 @@ const freeUpPort = async (port) => {
     const { stdout } = await execPromise(findCommand);
 
     if (stdout) {
-      console.log(`Port ${port} is in use. Attempting to free it up...`);
+      vlog(`Port ${port} is in use. Attempting to free it up...`);
 
       // Extract PID and kill the process
       let pid;
@@ -83,18 +93,18 @@ const freeUpPort = async (port) => {
       }
 
       if (pid) {
-        console.log(`Killing process with PID: ${pid}`);
+        vlog(`Killing process with PID: ${pid}`);
         const killCommand =
           process.platform === "win32"
             ? `taskkill /F /PID ${pid}`
             : `kill -9 ${pid}`;
 
         await execPromise(killCommand);
-        console.log(`✓ Successfully freed up port ${port}`);
+        vlog(`✓ Successfully freed up port ${port}`);
         await wait(1000); // Wait for the port to be fully released
       }
     } else {
-      console.log(`Port ${port} is available.`);
+      vlog(`Port ${port} is available.`);
     }
     return true;
   } catch (error) {
@@ -108,37 +118,39 @@ const startServer = async (port = PORT) => {
   try {
     // If there's an existing server, close it properly first
     if (serverInstance) {
-      console.log("Closing existing server instance...");
+      vlog("Closing existing server instance...");
       await new Promise((resolve) => {
         serverInstance.close(() => {
-          console.log("Existing server closed");
+          vlog("Existing server closed");
           resolve();
         });
       });
       serverInstance = null;
     }
 
-    // Always try to free up port 3000 first
-    await freeUpPort(port);
+    // Free up the port if enabled
+    if (ENABLE_PORT_CLEANUP) {
+      await freeUpPort(port);
+    }
 
-    console.log(`Attempting to start server on port ${port}...`);
+    vlog(`Attempting to start server on port ${port}...`);
 
     // Create new server instance
     serverInstance = server.listen(port, () => {
-      console.log("✓ Server startup complete!");
+      vlog("✓ Server startup complete!");
       console.log(`🚀 Server running at http://localhost:${port}`);
-      console.log("Ready to accept connections");
+      vlog("Ready to accept connections");
     });
 
     // Handle server errors
     serverInstance.on("error", async (error) => {
       if (error.code === "EADDRINUSE") {
-        console.log(`⚠️  Port ${port} is still busy after attempt to free it.`);
-        console.log("Trying again to free up the port...");
+        vlog(`⚠️  Port ${port} is still busy after attempt to free it.`);
+        vlog("Trying again to free up the port...");
 
         const success = await freeUpPort(port);
         if (success) {
-          console.log("Retrying server startup...");
+          vlog("Retrying server startup...");
           await wait(1000);
           await startServer(port); // Try again with the same port
         } else {
@@ -154,10 +166,10 @@ const startServer = async (port = PORT) => {
     // Handle process termination
     const cleanup = async () => {
       if (serverInstance) {
-        console.log("Shutting down server...");
+        vlog("Shutting down server...");
         await new Promise((resolve) => {
           serverInstance.close(() => {
-            console.log("✓ Server closed");
+            vlog("✓ Server closed");
             resolve();
           });
         });
@@ -185,7 +197,7 @@ const startServer = async (port = PORT) => {
     return serverInstance;
   } catch (error) {
     console.error("❌ Failed to start server:", error);
-    console.log("Retrying in 2 seconds...");
+    vlog("Retrying in 2 seconds...");
     await wait(2000);
     return startServer(port); // Always retry with the same port
   }
